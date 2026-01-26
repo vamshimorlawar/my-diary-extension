@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Diary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          <line x1="8" y1="7" x2="16" y2="7"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
+        <div>
+          <h1>My Diary</h1>
+          <p class="subtitle">Saved snippets</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="entries">Entries</button>
+      <button class="tab" data-tab="trash">Trash <span id="trashCount" class="badge hidden">0</span></button>
+    </div>
+
+    <div class="controls" id="entriesControls">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search...">
+      </div>
+      <button id="clearAllBtn" class="btn-outline btn-sm">Clear All</button>
+    </div>
+
+    <div class="filter-bar" id="filterBar">
+      <select id="tagFilter">
+        <option value="">All Tags</option>
+      </select>
+      <button id="favFilterBtn" class="fav-filter-btn" title="Show favourites only">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="controls hidden" id="trashControls">
+      <span class="trash-info">Last 5 deleted</span>
+      <button id="emptyTrashBtn" class="btn-outline btn-sm btn-danger">Empty Trash</button>
+    </div>
+
+    <div id="entriesContainer"></div>
+    <div id="trashContainer" class="hidden"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
