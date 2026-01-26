@@ -2,6 +2,8 @@
 
 A simple Chrome extension to save text snippets from any webpage to your personal diary.
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-blue?logo=googlechrome)](https://chromewebstore.google.com/detail/my-diary/nfdcipolchlmlipikekpbbmpdpienajm)
+
 ## Features
 
 - **Right-click to save**: Select any text on a webpage, right-click, and choose "Add to My Diary"

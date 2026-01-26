@@ -10,3 +10,11 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Media files
+*.mov
+*.mp4
+*.png
+*.jpg
+*.jpeg
+!icons/*.png
