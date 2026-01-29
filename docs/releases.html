@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Releases - My Diary</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1 { font-size: 2rem; margin-bottom: 8px; color: #4f46e5; }
+    h2 { font-size: 1.25rem; margin: 32px 0 12px; color: #111; }
+    p { margin-bottom: 16px; color: #555; }
+    ul { margin: 0 0 16px 24px; color: #555; }
+    li { margin-bottom: 8px; }
+    a { color: #4f46e5; }
+    .subtitle { color: #666; margin-bottom: 32px; }
+    .nav { margin-bottom: 40px; }
+    .nav a { margin-right: 20px; text-decoration: none; font-weight: 500; }
+    .nav a:hover { text-decoration: underline; }
+    footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; color: #888; font-size: 0.9rem; }
+    .release { margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid #eee; }
+    .release:last-of-type { border-bottom: none; }
+    .release-date { font-size: 0.9rem; color: #888; margin-bottom: 12px; }
+    .release h2 { margin-top: 0; display: flex; align-items: baseline; gap: 8px; }
+    .version { font-size: 1rem; font-weight: 600; color: #4f46e5; }
+    .changelog-section { margin-top: 16px; }
+    .changelog-section h3 { font-size: 0.95rem; margin-bottom: 8px; color: #444; }
+    .changelog-section ul { margin-bottom: 0; }
+    code { font-size: 0.9em; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="index.html">Home</a>
+    <a href="releases.html">Releases</a>
+    <a href="privacy.html">Privacy Policy</a>
+  </div>
+
+  <h1>Releases</h1>
+  <p class="subtitle">What’s new in each version</p>
+
+  <div class="release">
+    <h2><span class="version">v1.1.0</span></h2>
+    <p class="release-date">January 2026</p>
+
+    <div class="changelog-section">
+      <h3>New</h3>
+      <ul>
+        <li><strong>Copy button</strong> — Tap the copy icon on any entry to copy its text (and your note, if you added one) so you can paste it elsewhere. A checkmark confirms it’s copied.</li>
+        <li><strong>Scrollable long entries</strong> — For longer saved text, you can scroll inside the entry instead of it taking up the whole list.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-section">
+      <h3>Improved</h3>
+      <ul>
+        <li>Tags now appear in a clearer format (e.g. Text, Link, Quote) everywhere.</li>
+        <li>Each entry shows both “how long ago” and the exact date and time (e.g. <em>5m ago · Jan 26, 2:30 PM</em>).</li>
+        <li>Hint text in search and comment boxes is lighter and easier on the eyes.</li>
+        <li>When you add an entry on a dark website, the “Add tag” and “Comment” boxes stay light with dark text so they’re easy to read.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-section">
+      <h3>Fixed</h3>
+      <ul>
+        <li>On dark-themed sites, the tag and comment fields when adding an entry no longer turn dark and hide the text.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="release">
+    <h2><span class="version">v1.0.0</span></h2>
+    <p class="release-date">January 2026</p>
+
+    <div class="changelog-section">
+      <h3>What’s included</h3>
+      <ul>
+        <li>Select any text on a page, right‑click, and choose <strong>Add to My Diary</strong> to save it.</li>
+        <li>When adding, you see a small window with your selection, optional tags (Text, Link, Quote, etc.), and a box for your own notes.</li>
+        <li>Search your diary, filter by tag or favourites, and star entries you care about most.</li>
+        <li>Deleted entries go to <strong>Trash</strong> (last 5). You can restore them or remove them permanently.</li>
+        <li>Copy, favourite, and delete buttons on each entry; add or edit a note anytime.</li>
+        <li>Simple, clean design. Everything stays on your device — we don’t collect or store your data.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 My Diary Extension. <a href="https://github.com/vamshimorlawar/my-diary-extension">View on GitHub</a></p>
+  </footer>
+</body>
+</html>

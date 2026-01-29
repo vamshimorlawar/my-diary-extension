@@ -28,6 +28,7 @@
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   animation: my-diary-slide 0.2s ease-out;
+  color-scheme: light;
 }
 
 @keyframes my-diary-slide {
@@ -183,17 +184,24 @@
   border-radius: 6px;
   font-size: 12px;
   font-family: inherit;
-  color: #111827;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
   outline: none;
   transition: border-color 0.15s;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
 .my-diary-custom-tag input::placeholder {
-  color: #9ca3af;
+  color: #c4c8cc !important;
 }
 
 .my-diary-custom-tag input:focus {
   border-color: #4f46e5;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
 }
 
 .my-diary-custom-tag button {
@@ -228,18 +236,25 @@
   font-family: inherit;
   resize: vertical;
   min-height: 60px;
-  color: #111827;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
   outline: none;
   transition: border-color 0.15s;
   line-height: 1.5;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
 #my-diary-comment::placeholder {
-  color: #9ca3af;
+  color: #c4c8cc !important;
 }
 
 #my-diary-comment:focus {
   border-color: #4f46e5;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
 }
 
 .my-diary-footer {

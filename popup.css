@@ -358,6 +358,14 @@ header h1 {
   fill: var(--accent);
 }
 
+.icon-btn.copy-btn:hover {
+  color: var(--primary);
+}
+
+.icon-btn.copy-btn.copied {
+  color: var(--success);
+}
+
 .icon-btn.delete-btn:hover {
   color: var(--danger);
 }

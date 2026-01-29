@@ -20,7 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
     comment: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`,
     edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
     restore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
-    x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>`
+    x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
+    copy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`,
+    check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`
   };
 
   let allEntries = [];
@@ -246,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="entry-date">${formattedDate}</span>
         </div>
         <div class="entry-header-right">
+          <button class="icon-btn copy-btn" title="Copy">${icons.copy}</button>
           <button class="icon-btn fav-btn ${isFav ? 'active' : ''}" title="Favourite">${icons.star}</button>
           <button class="icon-btn delete-btn" title="Delete">${icons.x}</button>
         </div>
@@ -276,6 +279,27 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
+
+    // Copy button handler
+    const copyBtn = div.querySelector('.copy-btn');
+    copyBtn.addEventListener('click', async () => {
+      const text = entry.comment
+        ? `${entry.text}\n\n— ${entry.comment}`
+        : entry.text;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerHTML = icons.check;
+        copyBtn.title = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.innerHTML = icons.copy;
+          copyBtn.title = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 1500);
+      } catch (err) {
+        copyBtn.title = 'Copy failed';
+      }
+    });
 
     // Favourite button handler
     div.querySelector('.fav-btn').addEventListener('click', () => {
