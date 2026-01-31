@@ -21,23 +21,22 @@ if (!window.myDiaryInjected) {
     const existing = document.getElementById("my-diary-modal-overlay");
     if (existing) existing.remove();
 
-    chrome.storage.sync.get(["theme"], (themeResult) => {
+    chrome.storage.sync.get(["theme", "contentModalShowCustomTags"], (themeResult) => {
       const isDark = themeResult.theme === "dark";
+      const showCustomTags = themeResult.contentModalShowCustomTags ?? true;
       chrome.runtime.sendMessage({ action: "getCustomTags" }, (tagResponse) => {
         const customTags = tagResponse?.tags || [];
         const canAddCustomTag = tagResponse?.canAddCustomTag !== false;
         chrome.runtime.sendMessage({ action: "getFoldersForModal" }, (folderResponse) => {
           const folders = folderResponse?.folders || [];
           const showFolder = folderResponse?.isPremium === true;
-          createModal(data, customTags, canAddCustomTag, isDark, folders, showFolder);
+          createModal(data, customTags, canAddCustomTag, isDark, folders, showFolder, showCustomTags);
         });
       });
     });
   }
 
-  function createModal(data, customTags, canAddCustomTag = true, isDark = false, folders = [], showFolder = false) {
-    const allTags = [...DEFAULT_TAGS, ...customTags];
-
+  function createModal(data, customTags, canAddCustomTag = true, isDark = false, folders = [], showFolder = false, showCustomTags = true) {
     const overlay = document.createElement("div");
     overlay.id = "my-diary-modal-overlay";
     if (isDark) overlay.classList.add("my-diary-theme-dark");
@@ -79,15 +78,25 @@ if (!window.myDiaryInjected) {
           </div>
           ${folderField}
           <div class="my-diary-field">
-            <label>Tags</label>
-            <div class="my-diary-tags-list">
-              ${allTags.map(tag => `
+            <div class="my-diary-field-label-row">
+              <label>Tags</label>
+              <button type="button" class="my-diary-custom-tags-toggle" id="my-diary-custom-tags-toggle" aria-expanded="${showCustomTags}">
+                ${showCustomTags ? "Hide" : "Show"}
+              </button>
+            </div>
+            <div class="my-diary-tags-list my-diary-default-tags">
+              ${DEFAULT_TAGS.map(tag => `
                 <button type="button" class="my-diary-tag-btn" data-tag="${escapeHtml(tag)}">${escapeHtml(toTitleCase(tag))}</button>
               `).join("")}
             </div>
-            <div class="my-diary-custom-tag ${!canAddCustomTag ? 'my-diary-limited' : ''}">
-              <input type="text" id="my-diary-new-tag" placeholder="${canAddCustomTag ? 'Custom tag...' : 'Upgrade for more custom tags'}" ${!canAddCustomTag ? 'disabled' : ''}>
-              <button type="button" id="my-diary-add-tag" ${!canAddCustomTag ? 'disabled' : ''}>${icons.plus}</button>
+            <div class="my-diary-tags-list my-diary-custom-tags-list ${showCustomTags ? "" : "hidden"}" id="my-diary-custom-tags-list">
+              ${customTags.map(tag => `
+                <button type="button" class="my-diary-tag-btn" data-tag="${escapeHtml(tag)}">${escapeHtml(toTitleCase(tag))}</button>
+              `).join("")}
+            </div>
+            <div class="my-diary-custom-tag ${!canAddCustomTag ? "my-diary-limited" : ""}">
+              <input type="text" id="my-diary-new-tag" placeholder="${canAddCustomTag ? "Custom tag..." : "Upgrade for more custom tags"}" ${!canAddCustomTag ? "disabled" : ""}>
+              <button type="button" id="my-diary-add-tag" ${!canAddCustomTag ? "disabled" : ""}>${icons.plus}</button>
             </div>
           </div>
 
@@ -114,6 +123,17 @@ if (!window.myDiaryInjected) {
     overlay.querySelector(".my-diary-btn-cancel").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal();
+    });
+
+    // Custom tags show/hide toggle
+    const customTagsToggle = overlay.querySelector("#my-diary-custom-tags-toggle");
+    const customTagsList = overlay.querySelector("#my-diary-custom-tags-list");
+    customTagsToggle.addEventListener("click", () => {
+      const isHidden = customTagsList.classList.contains("hidden");
+      customTagsList.classList.toggle("hidden", !isHidden);
+      customTagsToggle.setAttribute("aria-expanded", isHidden);
+      customTagsToggle.textContent = (isHidden ? "Hide" : "Show");
+      chrome.storage.sync.set({ contentModalShowCustomTags: isHidden });
     });
 
     // Tag selection
@@ -160,7 +180,7 @@ if (!window.myDiaryInjected) {
             tagBtn.classList.add("selected");
           }
         });
-        overlay.querySelector(".my-diary-tags-list").appendChild(tagBtn);
+        overlay.querySelector("#my-diary-custom-tags-list").appendChild(tagBtn);
         
         selectedTags.push(tag);
         newTagInput.value = "";
