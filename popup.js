@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const entriesControls = document.getElementById('entriesControls');
   const trashControls = document.getElementById('trashControls');
   const trashCountBadge = document.getElementById('trashCount');
+  const entriesCountBadge = document.getElementById('entriesCount');
   const filterBar = document.getElementById('filterBar');
   const folderFilter = document.getElementById('folderFilter');
   const tagFilter = document.getElementById('tagFilter');
@@ -134,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveData(() => {
         renderEntries([]);
         updateTrashBadge();
+        updateEntriesBadge();
       });
     }
   });
@@ -355,6 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateFolderFilter();
         applyFilters();
         updateTrashBadge();
+        updateEntriesBadge();
         updateUpgradeUI();
         if (isPremiumUser) loadTheme();
       });
@@ -441,6 +444,16 @@ document.addEventListener('DOMContentLoaded', () => {
       trashCountBadge.classList.remove('hidden');
     } else {
       trashCountBadge.classList.add('hidden');
+    }
+  }
+
+  function updateEntriesBadge() {
+    if (!entriesCountBadge) return;
+    if (allEntries.length > 0) {
+      entriesCountBadge.textContent = allEntries.length;
+      entriesCountBadge.classList.remove('hidden');
+    } else {
+      entriesCountBadge.classList.add('hidden');
     }
   }
 
@@ -679,6 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveData(() => {
       applyFilters();
       updateTrashBadge();
+      updateEntriesBadge();
     });
   }
 
@@ -722,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveData(() => {
         renderTrash();
         updateTrashBadge();
+        updateEntriesBadge();
         populateTagFilter();
         populateFolderFilter();
       });

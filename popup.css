@@ -204,6 +204,10 @@ header h1 {
   margin-left: 4px;
 }
 
+.badge--entries {
+  background: #64748b;
+}
+
 /* Controls */
 .controls {
   display: flex;
