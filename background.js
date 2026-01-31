@@ -1,4 +1,4 @@
-const FREE_MAX_ENTRIES = 50;
+const FREE_MAX_ENTRIES = 10;
 const PREMIUM_MAX_TRASH = 50;
 const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
 
@@ -92,7 +92,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const entries = result.diaryEntries || [];
       const customTags = result.customTags || [];
 
-      // Free tier: soft limit - allow if existing user has > 50, block only new saves when at/over limit
+      // Free tier: soft limit - block new saves when at/over limit
       if (!premium && entries.length >= FREE_MAX_ENTRIES) {
         sendResponse({ success: false, reason: "entry_limit", limit: FREE_MAX_ENTRIES });
         return;

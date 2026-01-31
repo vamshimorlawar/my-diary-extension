@@ -838,3 +838,71 @@ header h1 {
 .entry-text::-webkit-scrollbar-thumb:hover {
   background: var(--border-hover);
 }
+
+/* Trash limit modal */
+.trash-limit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.trash-limit-modal {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px;
+  max-width: 320px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.trash-limit-message {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.trash-limit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trash-limit-upgrade {
+  display: block;
+  text-align: center;
+  padding: 10px 16px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  color: white;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.trash-limit-upgrade:hover {
+  background: var(--primary-hover) !important;
+  color: white;
+}
+
+.trash-limit-delete {
+  width: 100%;
+}
+
+.trash-limit-cancel {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.trash-limit-cancel:hover {
+  color: var(--text-secondary);
+}

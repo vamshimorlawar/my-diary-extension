@@ -196,7 +196,7 @@ if (!window.myDiaryInjected) {
           `;
           setTimeout(closeModal, 800);
         } else if (response?.reason === "entry_limit") {
-          showUpgradePrompt(overlay, "You've reached the 50-entry limit on the free plan. Upgrade to Premium for unlimited entries.");
+          showUpgradePrompt(overlay, "You've reached the 10-entry limit on the free plan. Upgrade to Pro for unlimited entries.");
         } else if (response?.reason === "custom_tag_limit") {
           showUpgradePrompt(overlay, "Free plan allows up to 3 custom tags. Upgrade for unlimited tags.");
         }

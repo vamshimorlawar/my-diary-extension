@@ -33,8 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let filterByFavourites = false;
   let isPremiumUser = false;
 
-  const FREE_MAX_ENTRIES = 50;
-  const FREE_MAX_TRASH = 5;
+  const FREE_MAX_ENTRIES = 10;
+  const FREE_MAX_TRASH = 2;
   const FREE_MAX_CUSTOM_TAGS = 3;
   const PREMIUM_MAX_TRASH = 50;
   const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
@@ -650,24 +650,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function deleteEntry(id) {
     const entry = allEntries.find(e => e.id === id);
-    if (entry) {
-      const trashedEntry = {
-        ...entry,
-        deletedAt: new Date().toISOString()
-      };
-      trashEntries.unshift(trashedEntry);
-      
-      if (trashEntries.length > getMaxTrashSize()) {
-        trashEntries = trashEntries.slice(0, getMaxTrashSize());
-      }
-      
-      allEntries = allEntries.filter(e => e.id !== id);
-      
-      saveData(() => {
-        applyFilters();
-        updateTrashBadge();
-      });
+    if (!entry) return;
+    const maxTrash = getMaxTrashSize();
+    const trashFull = !isPremiumUser && trashEntries.length >= maxTrash;
+    if (trashFull) {
+      showTrashLimitModal(maxTrash, () => performDelete(id));
+      return;
     }
+    performDelete(id);
+  }
+
+  function performDelete(id) {
+    const entry = allEntries.find(e => e.id === id);
+    if (!entry) return;
+    const maxTrash = getMaxTrashSize();
+    const trashedEntry = {
+      ...entry,
+      deletedAt: new Date().toISOString()
+    };
+    trashEntries.unshift(trashedEntry);
+
+    if (trashEntries.length > maxTrash) {
+      trashEntries = trashEntries.slice(0, maxTrash);
+    }
+
+    allEntries = allEntries.filter(e => e.id !== id);
+
+    saveData(() => {
+      applyFilters();
+      updateTrashBadge();
+    });
+  }
+
+  function showTrashLimitModal(maxTrash, onDeleteAnyway) {
+    const overlay = document.createElement('div');
+    overlay.className = 'trash-limit-overlay';
+    overlay.innerHTML = `
+      <div class="trash-limit-modal">
+        <p class="trash-limit-message">
+          The free plan allows only ${maxTrash} deleted entries. Deleting this will permanently remove the oldest item in trash.
+        </p>
+        <div class="trash-limit-actions">
+          <a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="btn-primary trash-limit-upgrade">Upgrade to Pro</a>
+          <button class="btn-outline trash-limit-delete">Delete anyway</button>
+          <button class="trash-limit-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+    const close = () => overlay.remove();
+    overlay.querySelector('.trash-limit-upgrade').addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.tabs.create({ url: 'https://vamshimorlawar.github.io/my-diary-extension/upgrade.html' });
+      close();
+    });
+    overlay.querySelector('.trash-limit-delete').addEventListener('click', () => {
+      close();
+      onDeleteAnyway();
+    });
+    overlay.querySelector('.trash-limit-cancel').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    document.body.appendChild(overlay);
   }
 
   function restoreEntry(id) {
