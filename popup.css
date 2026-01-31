@@ -148,6 +148,10 @@ header h1 {
   white-space: nowrap;
 }
 
+.pro-active-label {
+  color: #22c55e;
+}
+
 .upgrade-banner {
   background: #fef3c7;
   border-bottom: 1px solid #f59e0b;

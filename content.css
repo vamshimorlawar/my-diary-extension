@@ -123,6 +123,43 @@
   height: 18px;
 }
 
+.my-diary-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.my-diary-upgrade-link {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: none;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.my-diary-upgrade-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.my-diary-pro-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.pro-active-label {
+  color: #22c55e;
+}
+
 .my-diary-close {
   background: rgba(255, 255, 255, 0.15);
   border: none;

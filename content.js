@@ -51,6 +51,9 @@ if (!window.myDiaryInjected) {
             <input type="text" id="my-diary-folder-new" placeholder="Or type new folder..." class="my-diary-folder-new" style="margin-top: 6px;">
           </div>
         ` : "";
+    const upgradeHtml = showFolder
+      ? '<span class="my-diary-pro-badge">Pro · <span class="pro-active-label">Active</span></span>'
+      : '<a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-upgrade-link">Upgrade to Pro</a>';
     overlay.innerHTML = `
       <div class="my-diary-modal">
         <div class="my-diary-header">
@@ -58,7 +61,10 @@ if (!window.myDiaryInjected) {
             ${icons.book}
             <span>Add to My Diary</span>
           </div>
-          <button class="my-diary-close">${icons.x}</button>
+          <div class="my-diary-header-right">
+            ${upgradeHtml}
+            <button class="my-diary-close">${icons.x}</button>
+          </div>
         </div>
         
         <div class="my-diary-content">
