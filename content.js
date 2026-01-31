@@ -67,14 +67,38 @@ if (!window.myDiaryInjected) {
         </div>
         
         <div class="my-diary-content">
-          <div class="my-diary-field">
-            <label>Selected text</label>
-            <div class="my-diary-selected-text">${escapeHtml(data.text)}</div>
+          <div class="my-diary-field" id="my-diary-text-field">
+            ${showFolder
+              ? '<div class="my-diary-field-label-row"><label>Selected text</label><button type="button" class="my-diary-edit-btn" data-target="text">Edit</button></div>'
+              : '<div class="my-diary-field-label-row"><label>Selected text</label><a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-edit-pro-link">Edit with Pro</a></div>'
+            }
+            <div class="my-diary-text-view my-diary-selected-text" id="my-diary-text-view">${escapeHtml(data.text)}</div>
+            ${showFolder ? `<div class="my-diary-text-edit hidden" id="my-diary-text-edit"><textarea class="my-diary-selected-text my-diary-editable" rows="3">${escapeHtml(data.text)}</textarea></div>` : ""}
           </div>
 
-          <div class="my-diary-field">
-            <label>Source</label>
-            <div class="my-diary-source">${escapeHtml(data.pageTitle || data.url)}</div>
+          <div class="my-diary-field" id="my-diary-source-field">
+            ${showFolder
+              ? '<div class="my-diary-field-label-row"><label>Source</label><button type="button" class="my-diary-edit-btn" data-target="source">Edit</button></div>'
+              : '<div class="my-diary-field-label-row"><label>Source</label><a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-edit-pro-link">Edit with Pro</a></div>'
+            }
+            <div class="my-diary-source-view my-diary-source" id="my-diary-source-view">
+              ${showFolder
+                ? `<a href="${escapeHtml(data.url || "#")}" target="_blank" rel="noopener" class="my-diary-source-link">${escapeHtml(data.pageTitle || data.url || "")}</a>`
+                : escapeHtml(data.pageTitle || data.url || "")
+              }
+            </div>
+            ${showFolder ? `
+              <div class="my-diary-source-edit hidden" id="my-diary-source-edit">
+                <div class="my-diary-source-edit-row">
+                  <label class="my-diary-source-edit-label">Display text</label>
+                  <input type="text" class="my-diary-source-input" id="my-diary-source-title" placeholder="Link text" value="${escapeHtml(data.pageTitle || "")}">
+                </div>
+                <div class="my-diary-source-edit-row">
+                  <label class="my-diary-source-edit-label">Link</label>
+                  <input type="text" class="my-diary-source-input" id="my-diary-source-url" placeholder="https://..." value="${escapeHtml(data.url || "")}">
+                </div>
+              </div>
+            ` : ""}
           </div>
           ${folderField}
           <div class="my-diary-field">
@@ -116,13 +140,70 @@ if (!window.myDiaryInjected) {
     document.body.appendChild(overlay);
 
     let selectedTags = [];
+    let editedText = data.text;
+    let editedPageTitle = data.pageTitle || "";
+    let editedUrl = data.url || "";
 
     const closeModal = () => overlay.remove();
+
+    // Premium: Edit/Done toggle for selected text and source
+    if (showFolder) {
+      overlay.querySelectorAll(".my-diary-edit-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.target;
+          if (target === "text") {
+            const view = overlay.querySelector("#my-diary-text-view");
+            const edit = overlay.querySelector("#my-diary-text-edit");
+            const textarea = edit?.querySelector("textarea");
+            if (edit?.classList.contains("hidden")) {
+              view.classList.add("hidden");
+              edit.classList.remove("hidden");
+              textarea.value = editedText;
+              btn.textContent = "Done";
+            } else {
+              editedText = textarea.value;
+              view.textContent = editedText;
+              view.classList.remove("hidden");
+              edit.classList.add("hidden");
+              btn.textContent = "Edit";
+            }
+          } else if (target === "source") {
+            const view = overlay.querySelector("#my-diary-source-view");
+            const edit = overlay.querySelector("#my-diary-source-edit");
+            const titleInput = overlay.querySelector("#my-diary-source-title");
+            const urlInput = overlay.querySelector("#my-diary-source-url");
+            if (edit?.classList.contains("hidden")) {
+              view.classList.add("hidden");
+              edit.classList.remove("hidden");
+              titleInput.value = editedPageTitle;
+              urlInput.value = editedUrl;
+              btn.textContent = "Done";
+            } else {
+              editedPageTitle = titleInput.value.trim();
+              editedUrl = urlInput.value.trim();
+              const link = view.querySelector(".my-diary-source-link");
+              if (link) {
+                link.href = editedUrl || "#";
+                link.textContent = editedPageTitle || editedUrl || "";
+              }
+              view.classList.remove("hidden");
+              edit.classList.add("hidden");
+              btn.textContent = "Edit";
+            }
+          }
+        });
+      });
+    }
 
     overlay.querySelector(".my-diary-close").addEventListener("click", closeModal);
     overlay.querySelector(".my-diary-btn-cancel").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal();
+      const editLink = e.target.closest(".my-diary-edit-pro-link");
+      if (editLink) {
+        e.preventDefault();
+        chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
+      }
     });
 
     // Custom tags show/hide toggle
@@ -195,15 +276,20 @@ if (!window.myDiaryInjected) {
       const folderNewInput = overlay.querySelector("#my-diary-folder-new");
       const folderNew = folderNewInput ? folderNewInput.value.trim() : "";
       const folder = folderNew || (folderSelect ? folderSelect.value : "");
+      
+      const text = showFolder ? editedText : data.text;
+      const pageTitle = showFolder ? editedPageTitle : data.pageTitle;
+      const url = showFolder ? editedUrl : data.url;
+      
       chrome.runtime.sendMessage({
         action: "saveDiaryEntry",
         data: {
-          text: data.text,
-          url: data.url,
-          pageTitle: data.pageTitle,
+          text,
+          url: url || data.url,
+          pageTitle: pageTitle || data.pageTitle,
           tags: selectedTags,
-          comment: comment,
-          folder: folder
+          comment,
+          folder
         }
       }, (response) => {
         if (response?.success) {
