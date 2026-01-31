@@ -209,21 +209,57 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('activateLicenseBtn')?.addEventListener('click', () => {
     const keyInput = document.getElementById('licenseKeyInput');
     const msgEl = document.getElementById('licenseMessage');
+    const btn = document.getElementById('activateLicenseBtn');
     const key = keyInput?.value?.trim() || '';
+    const errMsg = {
+      invalid_format: 'Please enter a valid license key (at least 10 characters, e.g. XXXX-XXXX-XXXX).',
+      invalid: 'Invalid license key. Please check and try again.',
+      test_key: 'This is a test key. Get a real license from the purchase link.',
+      refunded: 'This license has been refunded and is no longer valid.',
+      expired: 'This subscription has expired. Renew to continue using Pro.',
+      network_error: 'Could not verify. Check your internet connection and try again.'
+    };
+    if (!key) {
+      msgEl.textContent = errMsg.invalid_format;
+      msgEl.className = 'license-message error';
+      msgEl.classList.remove('hidden');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
     chrome.runtime.sendMessage({ action: 'activateLicense', key }, (response) => {
+      btn.disabled = false;
+      btn.textContent = 'Activate';
       if (response?.success) {
         isPremiumUser = true;
         msgEl.textContent = 'Pro activated. Enjoy unlimited entries!';
         msgEl.className = 'license-message success';
         msgEl.classList.remove('hidden');
+        keyInput.value = '';
         updateLicenseUI();
         updateUpgradeUI();
         populateFolderFilter();
       } else {
-        msgEl.textContent = 'Invalid key. Use format XXXX-XXXX-XXXX (at least 10 characters with a hyphen).';
+        msgEl.textContent = errMsg[response?.reason] || errMsg.invalid;
         msgEl.className = 'license-message error';
         msgEl.classList.remove('hidden');
       }
+    });
+  });
+
+  function formatExpiryDate(isoStr) {
+    if (!isoStr) return null;
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  document.getElementById('deactivateLicenseLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.storage.sync.remove(['premiumLicense'], () => {
+      isPremiumUser = false;
+      updateLicenseUI();
+      updateUpgradeUI();
+      populateFolderFilter();
     });
   });
 
@@ -232,20 +268,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const formEl = document.getElementById('licenseForm');
     const msgEl = document.getElementById('licenseMessage');
     const darkSection = document.getElementById('darkModeSection');
+    const deactivateLink = document.getElementById('deactivateLicenseLink');
     if (!statusEl || !formEl) return;
-    if (isPremiumUser) {
-      statusEl.textContent = 'Pro active';
-      statusEl.classList.add('success');
-      formEl.classList.add('hidden');
-      if (msgEl) msgEl.classList.add('hidden');
-      if (darkSection) darkSection.classList.remove('hidden');
-      loadTheme();
-    } else {
-      statusEl.textContent = 'Free plan';
-      statusEl.classList.remove('success');
-      formEl.classList.remove('hidden');
-      if (darkSection) darkSection.classList.add('hidden');
-    }
+    chrome.runtime.sendMessage({ action: 'getLicenseInfo' }, (response) => {
+      isPremiumUser = response?.premium ?? false;
+      const lic = response?.license;
+      if (isPremiumUser && lic) {
+        const planLabel = lic.plan === 'monthly' ? 'Monthly' : lic.plan === 'yearly' ? 'Yearly' : 'Lifetime';
+        let statusText = `Pro (${planLabel})`;
+        const expiresStr = formatExpiryDate(lic.expiresAt);
+        if (expiresStr) statusText += ` · Expires ${expiresStr}`;
+        else if (lic.plan !== 'lifetime' && lic.recurrence) statusText += ' · Renews automatically';
+        statusEl.textContent = statusText;
+        statusEl.classList.add('success');
+        formEl.classList.add('hidden');
+        if (msgEl) msgEl.classList.add('hidden');
+        if (deactivateLink) deactivateLink.classList.remove('hidden');
+        if (darkSection) darkSection.classList.remove('hidden');
+        loadTheme();
+      } else {
+        statusEl.textContent = 'Free plan';
+        statusEl.classList.remove('success');
+        formEl.classList.remove('hidden');
+        if (deactivateLink) deactivateLink.classList.add('hidden');
+        if (darkSection) darkSection.classList.add('hidden');
+      }
+    });
   }
 
   function loadTheme() {

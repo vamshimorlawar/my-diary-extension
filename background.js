@@ -2,9 +2,47 @@ const FREE_MAX_ENTRIES = 50;
 const PREMIUM_MAX_TRASH = 50;
 const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
 
+// Gumroad config - Product ID from Gumroad dashboard
+const GUMROAD_PRODUCT_ID = "cxGbdmSnLsvOeIvGQZAWsQ==";
+
+async function verifyGumroadLicense(licenseKey) {
+  const key = licenseKey.trim();
+  if (!key || key.length < 10) return { valid: false, reason: "invalid_format" };
+  try {
+    const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_id: GUMROAD_PRODUCT_ID,
+        license_key: key,
+        increment_uses_count: false
+      })
+    });
+    const data = await res.json();
+    if (!data.success) return { valid: false, reason: "invalid" };
+    const p = data.purchase || {};
+    if (p.test) return { valid: false, reason: "test_key" };
+    if (p.refunded || p.chargebacked) return { valid: false, reason: "refunded" };
+    const endedAt = p.subscription_ended_at || p.subscription_cancelled_at || p.subscription_failed_at;
+    if (endedAt && new Date(endedAt) <= new Date()) return { valid: false, reason: "expired", expiresAt: endedAt };
+    return {
+      valid: true,
+      key: p.license_key,
+      plan: p.recurrence || "lifetime",
+      expiresAt: endedAt || null,
+      recurrence: p.recurrence
+    };
+  } catch (err) {
+    return { valid: false, reason: "network_error" };
+  }
+}
+
 async function isPremium() {
   const result = await chrome.storage.sync.get(["premiumLicense"]);
-  return !!result.premiumLicense?.valid;
+  const lic = result.premiumLicense;
+  if (!lic?.valid) return false;
+  if (lic.expiresAt && new Date(lic.expiresAt) <= new Date()) return false;
+  return true;
 }
 
 // Create context menu item when extension is installed
@@ -112,14 +150,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === "activateLicense") {
     (async () => {
-      const key = (message.key || "").trim();
-      const valid = key.length >= 10 && key.includes("-");
-      if (valid) {
-        await chrome.storage.sync.set({ premiumLicense: { valid: true, key: key.substring(0, 8) + "..." } });
-        sendResponse({ success: true });
+      const result = await verifyGumroadLicense(message.key || "");
+      if (result.valid) {
+        await chrome.storage.sync.set({
+          premiumLicense: {
+            valid: true,
+            key: result.key ? result.key.substring(0, 8) + "..." : "",
+            plan: result.plan,
+            expiresAt: result.expiresAt || null,
+            recurrence: result.recurrence
+          }
+        });
+        sendResponse({ success: true, plan: result.plan, expiresAt: result.expiresAt });
       } else {
-        sendResponse({ success: false, reason: "invalid_format" });
+        sendResponse({ success: false, reason: result.reason, expiresAt: result.expiresAt });
       }
+    })();
+    return true;
+  }
+
+  if (message.action === "getLicenseInfo") {
+    (async () => {
+      const result = await chrome.storage.sync.get(["premiumLicense"]);
+      const lic = result.premiumLicense;
+      if (!lic) {
+        sendResponse({ premium: false, license: null });
+        return;
+      }
+      const premium = await isPremium();
+      sendResponse({ premium, license: lic });
     })();
     return true;
   }

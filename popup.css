@@ -676,6 +676,15 @@ header h1 {
   color: var(--success);
 }
 
+.deactivate-link {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+.deactivate-link:hover {
+  color: var(--danger);
+}
+
 .license-form {
   display: flex;
   flex-direction: column;
