@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUpgradeUI();
         populateFolderFilter();
       } else {
-        msgEl.textContent = errMsg[response?.reason] || errMsg.invalid;
+        msgEl.textContent = (response?.message && response.message.length > 0) ? response.message : (errMsg[response?.reason] || errMsg.invalid);
         msgEl.className = 'license-message error';
         msgEl.classList.remove('hidden');
       }

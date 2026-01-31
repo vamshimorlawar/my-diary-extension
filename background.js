@@ -4,6 +4,8 @@ const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
 
 // Gumroad config - Product ID from Gumroad dashboard
 const GUMROAD_PRODUCT_ID = "cxGbdmSnLsvOeIvGQZAWsQ==";
+// Set to true to accept Gumroad test keys (for testing - do a test purchase while logged in)
+const ALLOW_TEST_KEYS = false;
 
 async function verifyGumroadLicense(licenseKey) {
   const key = licenseKey.trim();
@@ -19,9 +21,9 @@ async function verifyGumroadLicense(licenseKey) {
       })
     });
     const data = await res.json();
-    if (!data.success) return { valid: false, reason: "invalid" };
+    if (!data.success) return { valid: false, reason: "invalid", message: data.message || "" };
     const p = data.purchase || {};
-    if (p.test) return { valid: false, reason: "test_key" };
+    if (p.test && !ALLOW_TEST_KEYS) return { valid: false, reason: "test_key" };
     if (p.refunded || p.chargebacked) return { valid: false, reason: "refunded" };
     const endedAt = p.subscription_ended_at || p.subscription_cancelled_at || p.subscription_failed_at;
     if (endedAt && new Date(endedAt) <= new Date()) return { valid: false, reason: "expired", expiresAt: endedAt };
@@ -163,7 +165,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         sendResponse({ success: true, plan: result.plan, expiresAt: result.expiresAt });
       } else {
-        sendResponse({ success: false, reason: result.reason, expiresAt: result.expiresAt });
+        sendResponse({ success: false, reason: result.reason, message: result.message, expiresAt: result.expiresAt });
       }
     })();
     return true;
