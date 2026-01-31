@@ -34,6 +34,27 @@
     .changelog-section h3 { font-size: 0.95rem; margin-bottom: 8px; color: #444; }
     .changelog-section ul { margin-bottom: 0; }
     code { font-size: 0.9em; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+    .pro-launch {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border: 1px solid #c7d2fe;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+    .pro-launch h2 { margin-top: 0; margin-bottom: 12px; }
+    .pro-launch p { margin-bottom: 12px; }
+    .pro-launch ul { margin-bottom: 16px; }
+    .pro-try-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #4f46e5;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .pro-try-btn:hover { background: #4338ca; }
   </style>
 </head>
 <body>
@@ -46,6 +67,45 @@
 
   <h1>Releases</h1>
   <p class="subtitle">What’s new in each version</p>
+
+  <div class="pro-launch">
+    <h2>Introducing My Diary Pro</h2>
+    <p>We're excited to launch <strong>My Diary Pro</strong> — a premium tier that unlocks more power for your diary.</p>
+    <p><strong>Pro features:</strong></p>
+    <ul>
+      <li>Unlimited entries (free plan: 10)</li>
+      <li>50 items in trash (free: 2)</li>
+      <li>Unlimited custom tags (free: 3)</li>
+      <li>Edit selected text and source before saving</li>
+      <li>Export to JSON & Markdown</li>
+      <li>Dark mode</li>
+      <li>Folders & categories</li>
+    </ul>
+    <a href="upgrade.html" class="pro-try-btn">Try out Pro</a>
+  </div>
+
+  <div class="release">
+    <h2><span class="version">v2.1.0</span></h2>
+    <p class="release-date">January 2026</p>
+
+    <div class="changelog-section">
+      <h3>New</h3>
+      <ul>
+        <li><strong>Entries count</strong> — The Entries tab now shows how many items you have saved, similar to the Trash count.</li>
+        <li><strong>Edit selected text and source (Pro)</strong> — Pro users can edit the selected text and source before saving. Click <strong>Edit</strong> next to either field to tweak your snippet or change the display text and link. Free users see an "Edit with Pro" option.</li>
+        <li><strong>Show or hide custom tags</strong> — In the Add to My Diary window, you can collapse the custom tags section to keep the view clean. Your choice is remembered.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-section">
+      <h3>Improved</h3>
+      <ul>
+        <li>Entries count badge uses a subtle slate color so it's distinct from the red trash badge.</li>
+        <li>Custom tags section uses the same layout and spacing as the default tags.</li>
+        <li>Trash limit warning now offers "Upgrade to Pro" and "Delete anyway" options when you're about to exceed the free plan limit.</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="release">
     <h2><span class="version">v1.1.0</span></h2>
