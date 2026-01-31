@@ -6,6 +6,7 @@ const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
 const GUMROAD_PRODUCT_ID = "cxGbdmSnLsvOeIvGQZAWsQ==";
 // Set to true to accept Gumroad test keys (for testing - do a test purchase while logged in)
 const ALLOW_TEST_KEYS = true;
+const REVERIFY_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 async function verifyGumroadLicense(licenseKey) {
   const key = licenseKey.trim();
@@ -39,12 +40,48 @@ async function verifyGumroadLicense(licenseKey) {
   }
 }
 
-async function isPremium() {
-  const result = await chrome.storage.sync.get(["premiumLicense"]);
-  const lic = result.premiumLicense;
-  if (!lic?.valid) return false;
-  if (lic.expiresAt && new Date(lic.expiresAt) <= new Date()) return false;
-  return true;
+async function getPremiumStatus() {
+  const { premiumLicense } = await chrome.storage.sync.get(["premiumLicense"]);
+  const lic = premiumLicense;
+
+  if (!lic?.licenseKey) return { premium: false };
+
+  const now = Date.now();
+  const lastVerifiedAt = lic.lastVerifiedAt ? new Date(lic.lastVerifiedAt).getTime() : 0;
+  const within24h = (now - lastVerifiedAt) < REVERIFY_INTERVAL_MS;
+
+  if (lic.lastVerifiedAt && within24h) {
+    return { premium: lic.valid === true };
+  }
+
+  try {
+    const result = await verifyGumroadLicense(lic.licenseKey);
+
+    if (result.valid) {
+      await chrome.storage.sync.set({
+        premiumLicense: {
+          ...lic,
+          valid: true,
+          licenseKey: lic.licenseKey,
+          key: result.key ? result.key.substring(0, 8) + "..." : "",
+          plan: result.plan,
+          expiresAt: result.expiresAt || null,
+          recurrence: result.recurrence,
+          lastVerifiedAt: new Date().toISOString()
+        }
+      });
+      return { premium: true };
+    }
+
+    if (result.reason === "network_error") {
+      return { premium: lic.valid === true };
+    }
+
+    await chrome.storage.sync.remove(["premiumLicense"]);
+    return { premium: false };
+  } catch (err) {
+    return { premium: lic.valid === true };
+  }
 }
 
 // Create context menu item when extension is installed
@@ -87,7 +124,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "saveDiaryEntry") {
     (async () => {
-      const premium = await isPremium();
+      const premium = (await getPremiumStatus()).premium;
       const result = await chrome.storage.local.get(["diaryEntries", "customTags"]);
       const entries = result.diaryEntries || [];
       const customTags = result.customTags || [];
@@ -144,7 +181,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === "checkPremium") {
     (async () => {
-      const premium = await isPremium();
+      const premium = (await getPremiumStatus()).premium;
       sendResponse({ premium });
     })();
     return true;
@@ -157,10 +194,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         await chrome.storage.sync.set({
           premiumLicense: {
             valid: true,
+            licenseKey: result.key,
             key: result.key ? result.key.substring(0, 8) + "..." : "",
             plan: result.plan,
             expiresAt: result.expiresAt || null,
-            recurrence: result.recurrence
+            recurrence: result.recurrence,
+            lastVerifiedAt: new Date().toISOString()
           }
         });
         sendResponse({ success: true, plan: result.plan, expiresAt: result.expiresAt });
@@ -179,7 +218,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ premium: false, license: null });
         return;
       }
-      const premium = await isPremium();
+      const premium = (await getPremiumStatus()).premium;
       sendResponse({ premium, license: lic });
     })();
     return true;
@@ -187,7 +226,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === "getCustomTags") {
     (async () => {
-      const premium = await isPremium();
+      const premium = (await getPremiumStatus()).premium;
       const result = await chrome.storage.local.get(["customTags"]);
       const tags = result.customTags || [];
       const customOnly = tags.filter(t => !DEFAULT_TAGS.includes(t));
@@ -199,7 +238,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === "getFoldersForModal") {
     (async () => {
-      const premium = await isPremium();
+      const premium = (await getPremiumStatus()).premium;
       if (!premium) {
         sendResponse({ folders: [], isPremium: false });
         return;
