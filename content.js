@@ -21,17 +21,36 @@ if (!window.myDiaryInjected) {
     const existing = document.getElementById("my-diary-modal-overlay");
     if (existing) existing.remove();
 
-    chrome.runtime.sendMessage({ action: "getCustomTags" }, (response) => {
-      const customTags = response?.tags || [];
-      createModal(data, customTags);
+    chrome.storage.sync.get(["theme"], (themeResult) => {
+      const isDark = themeResult.theme === "dark";
+      chrome.runtime.sendMessage({ action: "getCustomTags" }, (tagResponse) => {
+        const customTags = tagResponse?.tags || [];
+        const canAddCustomTag = tagResponse?.canAddCustomTag !== false;
+        chrome.runtime.sendMessage({ action: "getFoldersForModal" }, (folderResponse) => {
+          const folders = folderResponse?.folders || [];
+          const showFolder = folderResponse?.isPremium === true;
+          createModal(data, customTags, canAddCustomTag, isDark, folders, showFolder);
+        });
+      });
     });
   }
 
-  function createModal(data, customTags) {
+  function createModal(data, customTags, canAddCustomTag = true, isDark = false, folders = [], showFolder = false) {
     const allTags = [...DEFAULT_TAGS, ...customTags];
 
     const overlay = document.createElement("div");
     overlay.id = "my-diary-modal-overlay";
+    if (isDark) overlay.classList.add("my-diary-theme-dark");
+    const folderField = showFolder ? `
+          <div class="my-diary-field">
+            <label>Folder</label>
+            <select id="my-diary-folder">
+              <option value="">None</option>
+              ${folders.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("")}
+            </select>
+            <input type="text" id="my-diary-folder-new" placeholder="Or type new folder..." class="my-diary-folder-new" style="margin-top: 6px;">
+          </div>
+        ` : "";
     overlay.innerHTML = `
       <div class="my-diary-modal">
         <div class="my-diary-header">
@@ -52,7 +71,7 @@ if (!window.myDiaryInjected) {
             <label>Source</label>
             <div class="my-diary-source">${escapeHtml(data.pageTitle || data.url)}</div>
           </div>
-
+          ${folderField}
           <div class="my-diary-field">
             <label>Tags</label>
             <div class="my-diary-tags-list">
@@ -60,9 +79,9 @@ if (!window.myDiaryInjected) {
                 <button type="button" class="my-diary-tag-btn" data-tag="${escapeHtml(tag)}">${escapeHtml(toTitleCase(tag))}</button>
               `).join("")}
             </div>
-            <div class="my-diary-custom-tag">
-              <input type="text" id="my-diary-new-tag" placeholder="Custom tag...">
-              <button type="button" id="my-diary-add-tag">${icons.plus}</button>
+            <div class="my-diary-custom-tag ${!canAddCustomTag ? 'my-diary-limited' : ''}">
+              <input type="text" id="my-diary-new-tag" placeholder="${canAddCustomTag ? 'Custom tag...' : 'Upgrade for more custom tags'}" ${!canAddCustomTag ? 'disabled' : ''}>
+              <button type="button" id="my-diary-add-tag" ${!canAddCustomTag ? 'disabled' : ''}>${icons.plus}</button>
             </div>
           </div>
 
@@ -118,6 +137,7 @@ if (!window.myDiaryInjected) {
     });
 
     function addCustomTag() {
+      if (!canAddCustomTag) return;
       const tag = newTagInput.value.trim().toLowerCase();
       if (tag && !selectedTags.includes(tag)) {
         const tagBtn = document.createElement("button");
@@ -145,6 +165,10 @@ if (!window.myDiaryInjected) {
     overlay.querySelector(".my-diary-btn-save").addEventListener("click", () => {
       const comment = overlay.querySelector("#my-diary-comment").value;
       
+      const folderSelect = overlay.querySelector("#my-diary-folder");
+      const folderNewInput = overlay.querySelector("#my-diary-folder-new");
+      const folderNew = folderNewInput ? folderNewInput.value.trim() : "";
+      const folder = folderNew || (folderSelect ? folderSelect.value : "");
       chrome.runtime.sendMessage({
         action: "saveDiaryEntry",
         data: {
@@ -152,7 +176,8 @@ if (!window.myDiaryInjected) {
           url: data.url,
           pageTitle: data.pageTitle,
           tags: selectedTags,
-          comment: comment
+          comment: comment,
+          folder: folder
         }
       }, (response) => {
         if (response?.success) {
@@ -164,9 +189,29 @@ if (!window.myDiaryInjected) {
             </div>
           `;
           setTimeout(closeModal, 800);
+        } else if (response?.reason === "entry_limit") {
+          showUpgradePrompt(overlay, "You've reached the 50-entry limit on the free plan. Upgrade to Premium for unlimited entries.");
+        } else if (response?.reason === "custom_tag_limit") {
+          showUpgradePrompt(overlay, "Free plan allows up to 3 custom tags. Upgrade for unlimited tags.");
         }
       });
     });
+
+    function showUpgradePrompt(overlayEl, message) {
+      const modal = overlayEl.querySelector(".my-diary-modal");
+      modal.innerHTML = `
+        <div class="my-diary-upgrade-prompt">
+          <p class="my-diary-upgrade-message">${message}</p>
+          <a href="#" id="my-diary-upgrade-link" class="my-diary-btn my-diary-btn-save">Upgrade to Premium</a>
+          <button class="my-diary-btn my-diary-btn-cancel" id="my-diary-upgrade-close">Close</button>
+        </div>
+      `;
+      overlayEl.querySelector("#my-diary-upgrade-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
+      });
+      overlayEl.querySelector("#my-diary-upgrade-close").addEventListener("click", closeModal);
+    }
 
     document.addEventListener("keydown", function escHandler(e) {
       if (e.key === "Escape") {

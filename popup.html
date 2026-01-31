@@ -23,12 +23,18 @@
           <h1>My Diary</h1>
           <p class="subtitle">Saved snippets</p>
         </div>
+        <a id="upgradeLink" href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="header-upgrade">Pro</a>
+        <span id="proBadge" class="header-pro-badge hidden">Pro</span>
       </div>
     </header>
+    <div id="upgradeBanner" class="upgrade-banner hidden">
+      <p>You've reached the 50-entry limit. <a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank">Upgrade to Pro</a> for unlimited entries.</p>
+    </div>
 
     <div class="tabs">
       <button class="tab active" data-tab="entries">Entries</button>
       <button class="tab" data-tab="trash">Trash <span id="trashCount" class="badge hidden">0</span></button>
+      <button class="tab" data-tab="settings">Settings</button>
     </div>
 
     <div class="controls" id="entriesControls">
@@ -39,10 +45,14 @@
         </svg>
         <input type="text" id="searchInput" placeholder="Search...">
       </div>
+      <button id="exportBtn" class="btn-outline btn-sm" title="Export (Pro)">Export</button>
       <button id="clearAllBtn" class="btn-outline btn-sm">Clear All</button>
     </div>
 
     <div class="filter-bar" id="filterBar">
+      <select id="folderFilter" class="hidden">
+        <option value="">All Folders</option>
+      </select>
       <select id="tagFilter">
         <option value="">All Tags</option>
       </select>
@@ -54,12 +64,31 @@
     </div>
 
     <div class="controls hidden" id="trashControls">
-      <span class="trash-info">Last 5 deleted</span>
+      <span class="trash-info" id="trashInfo">Last 5 deleted</span>
       <button id="emptyTrashBtn" class="btn-outline btn-sm btn-danger">Empty Trash</button>
     </div>
 
     <div id="entriesContainer"></div>
     <div id="trashContainer" class="hidden"></div>
+    <div id="settingsContainer" class="hidden">
+      <div class="settings-section">
+        <h3>Pro license</h3>
+        <p class="settings-desc" id="licenseStatus">Free plan</p>
+        <div class="license-form" id="licenseForm">
+          <input type="text" id="licenseKeyInput" placeholder="Enter license key (e.g. XXXX-XXXX-XXXX)">
+          <button id="activateLicenseBtn" class="btn-primary">Activate</button>
+          <p id="licenseMessage" class="license-message hidden"></p>
+        </div>
+        <p class="settings-hint"><a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank">Get a license</a></p>
+      </div>
+      <div class="settings-section" id="darkModeSection">
+        <h3>Dark mode</h3>
+        <label class="settings-toggle">
+          <input type="checkbox" id="darkModeToggle">
+          <span>Use dark theme</span>
+        </label>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>

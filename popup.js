@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const trashControls = document.getElementById('trashControls');
   const trashCountBadge = document.getElementById('trashCount');
   const filterBar = document.getElementById('filterBar');
+  const folderFilter = document.getElementById('folderFilter');
   const tagFilter = document.getElementById('tagFilter');
   const favFilterBtn = document.getElementById('favFilterBtn');
   const tabs = document.querySelectorAll('.tab');
@@ -30,8 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let customTags = [];
   let currentTab = 'entries';
   let filterByFavourites = false;
+  let isPremiumUser = false;
 
-  const MAX_TRASH_SIZE = 5;
+  const FREE_MAX_ENTRIES = 50;
+  const FREE_MAX_TRASH = 5;
+  const FREE_MAX_CUSTOM_TAGS = 3;
+  const PREMIUM_MAX_TRASH = 50;
   const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
 
   // Load data on popup open
@@ -49,21 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTab = tabName;
     tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
     
-    if (tabName === 'entries') {
-      entriesContainer.classList.remove('hidden');
-      trashContainer.classList.add('hidden');
-      entriesControls.classList.remove('hidden');
-      filterBar.classList.remove('hidden');
-      trashControls.classList.add('hidden');
-      applyFilters();
-    } else {
-      entriesContainer.classList.add('hidden');
-      trashContainer.classList.remove('hidden');
-      entriesControls.classList.add('hidden');
-      filterBar.classList.add('hidden');
-      trashControls.classList.remove('hidden');
-      renderTrash();
-    }
+    entriesContainer.classList.toggle('hidden', tabName !== 'entries');
+    trashContainer.classList.toggle('hidden', tabName !== 'trash');
+    document.getElementById('settingsContainer').classList.toggle('hidden', tabName !== 'settings');
+    entriesControls.classList.toggle('hidden', tabName !== 'entries');
+    filterBar.classList.toggle('hidden', tabName !== 'entries');
+    trashControls.classList.toggle('hidden', tabName !== 'trash');
+    
+    if (tabName === 'entries') applyFilters();
+    else if (tabName === 'trash') renderTrash();
+    else if (tabName === 'settings') updateLicenseUI();
   }
 
   // Search functionality
@@ -73,6 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Tag filter
   tagFilter.addEventListener('change', () => {
+    applyFilters();
+  });
+
+  // Folder filter
+  folderFilter?.addEventListener('change', () => {
     applyFilters();
   });
 
@@ -86,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyFilters() {
     const query = searchInput.value.toLowerCase();
     const selectedTag = tagFilter.value;
+    const selectedFolder = folderFilter?.value || "";
     
     let filtered = allEntries;
     
@@ -103,6 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         entry.tags && entry.tags.includes(selectedTag)
       );
     }
+
+    if (selectedFolder) {
+      filtered = filtered.filter(entry => (entry.folder || "") === selectedFolder);
+    }
     
     if (filterByFavourites) {
       filtered = filtered.filter(entry => entry.isFavourite);
@@ -118,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ...entry,
         deletedAt: new Date().toISOString()
       }));
-      trashEntries = [...entriesToTrash, ...trashEntries].slice(0, MAX_TRASH_SIZE);
+      trashEntries = [...entriesToTrash, ...trashEntries].slice(0, getMaxTrashSize());
       allEntries = [];
       
       saveData(() => {
@@ -126,6 +136,133 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTrashBadge();
       });
     }
+  });
+
+  // Export
+  document.getElementById('exportBtn')?.addEventListener('click', () => {
+    if (!isPremiumUser) {
+      switchTab('settings');
+      return;
+    }
+    showExportMenu();
+  });
+
+  function showExportMenu() {
+    const btn = document.getElementById('exportBtn');
+    let menu = document.getElementById('exportMenu');
+    if (menu) {
+      menu.remove();
+      return;
+    }
+    menu = document.createElement('div');
+    menu.id = 'exportMenu';
+    menu.className = 'export-menu';
+    menu.innerHTML = `
+      <button data-format="json">Export as JSON</button>
+      <button data-format="markdown">Export as Markdown</button>
+    `;
+    document.body.appendChild(menu);
+    const rect = btn.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = `${rect.bottom + 4}px`;
+    menu.style.left = `${rect.right - 140}px`;
+    menu.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        exportData(b.dataset.format);
+        menu.remove();
+      });
+    });
+    document.addEventListener('click', function closeMenu(e) {
+      if (!menu.contains(e.target) && e.target !== btn) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+
+  function exportData(format) {
+    const data = { entries: allEntries, exportedAt: new Date().toISOString() };
+    let content, filename, mime;
+    if (format === 'markdown') {
+      content = allEntries.map(e => {
+        const d = new Date(e.date).toLocaleString();
+        const tags = (e.tags || []).length ? ` [${e.tags.join(', ')}]` : '';
+        const comment = e.comment ? `\n> ${e.comment}` : '';
+        return `## ${d}${tags}\n\n${e.text}\n\nSource: ${e.url}${comment}\n\n---`;
+      }).join('\n\n');
+      filename = `my-diary-${Date.now()}.md`;
+      mime = 'text/markdown';
+    } else {
+      content = JSON.stringify(data, null, 2);
+      filename = `my-diary-${Date.now()}.json`;
+      mime = 'application/json';
+    }
+    const blob = new Blob([content], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // License activation
+  document.getElementById('activateLicenseBtn')?.addEventListener('click', () => {
+    const keyInput = document.getElementById('licenseKeyInput');
+    const msgEl = document.getElementById('licenseMessage');
+    const key = keyInput?.value?.trim() || '';
+    chrome.runtime.sendMessage({ action: 'activateLicense', key }, (response) => {
+      if (response?.success) {
+        isPremiumUser = true;
+        msgEl.textContent = 'Pro activated. Enjoy unlimited entries!';
+        msgEl.className = 'license-message success';
+        msgEl.classList.remove('hidden');
+        updateLicenseUI();
+        updateUpgradeUI();
+        populateFolderFilter();
+      } else {
+        msgEl.textContent = 'Invalid key. Use format XXXX-XXXX-XXXX (at least 10 characters with a hyphen).';
+        msgEl.className = 'license-message error';
+        msgEl.classList.remove('hidden');
+      }
+    });
+  });
+
+  function updateLicenseUI() {
+    const statusEl = document.getElementById('licenseStatus');
+    const formEl = document.getElementById('licenseForm');
+    const msgEl = document.getElementById('licenseMessage');
+    const darkSection = document.getElementById('darkModeSection');
+    if (!statusEl || !formEl) return;
+    if (isPremiumUser) {
+      statusEl.textContent = 'Pro active';
+      statusEl.classList.add('success');
+      formEl.classList.add('hidden');
+      if (msgEl) msgEl.classList.add('hidden');
+      if (darkSection) darkSection.classList.remove('hidden');
+      loadTheme();
+    } else {
+      statusEl.textContent = 'Free plan';
+      statusEl.classList.remove('success');
+      formEl.classList.remove('hidden');
+      if (darkSection) darkSection.classList.add('hidden');
+    }
+  }
+
+  function loadTheme() {
+    chrome.storage.sync.get(['theme'], (r) => {
+      const isDark = r.theme === 'dark';
+      document.body.classList.toggle('theme-dark', isDark);
+      const toggle = document.getElementById('darkModeToggle');
+      if (toggle) toggle.checked = isDark;
+    });
+  }
+
+  document.getElementById('darkModeToggle')?.addEventListener('change', (e) => {
+    if (!isPremiumUser) return;
+    const theme = e.target.checked ? 'dark' : 'light';
+    chrome.storage.sync.set({ theme }, () => {
+      document.body.classList.toggle('theme-dark', theme === 'dark');
+    });
   });
 
   // Empty trash
@@ -140,15 +277,52 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function loadData() {
-    chrome.storage.local.get(['diaryEntries', 'trashEntries', 'customTags'], (result) => {
-      allEntries = result.diaryEntries || [];
-      trashEntries = result.trashEntries || [];
-      customTags = result.customTags || [];
-      
-      populateTagFilter();
-      applyFilters();
-      updateTrashBadge();
+    chrome.runtime.sendMessage({ action: "checkPremium" }, (response) => {
+      isPremiumUser = response?.premium ?? false;
+      chrome.storage.local.get(['diaryEntries', 'trashEntries', 'customTags'], (result) => {
+        allEntries = result.diaryEntries || [];
+        trashEntries = result.trashEntries || [];
+        customTags = result.customTags || [];
+        applyTrashLimit();
+        populateTagFilter();
+        populateFolderFilter();
+        applyFilters();
+        updateTrashBadge();
+        updateUpgradeUI();
+        if (isPremiumUser) loadTheme();
+      });
     });
+  }
+
+  function applyTrashLimit() {
+    const maxTrash = isPremiumUser ? PREMIUM_MAX_TRASH : FREE_MAX_TRASH;
+    if (trashEntries.length > maxTrash) {
+      trashEntries = trashEntries.slice(0, maxTrash);
+      saveData(() => {});
+    }
+  }
+
+  function getMaxTrashSize() {
+    return isPremiumUser ? PREMIUM_MAX_TRASH : FREE_MAX_TRASH;
+  }
+
+  function updateUpgradeUI() {
+    const upgradeBanner = document.getElementById("upgradeBanner");
+    const upgradeLink = document.getElementById("upgradeLink");
+    if (isPremiumUser) {
+      if (upgradeBanner) upgradeBanner.classList.add("hidden");
+      if (upgradeLink) upgradeLink.classList.add("hidden");
+      const proBadge = document.getElementById("proBadge");
+      if (proBadge) proBadge.classList.remove("hidden");
+    } else {
+      if (upgradeBanner) {
+        const atEntryLimit = allEntries.length >= FREE_MAX_ENTRIES;
+        upgradeBanner.classList.toggle("hidden", !atEntryLimit);
+      }
+      if (upgradeLink) upgradeLink.classList.remove("hidden");
+      const proBadge = document.getElementById("proBadge");
+      if (proBadge) proBadge.classList.add("hidden");
+    }
   }
 
   function saveData(callback) {
@@ -179,7 +353,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function populateFolderFilter() {
+    if (!folderFilter) return;
+    const folders = [...new Set(allEntries.map(e => e.folder).filter(Boolean))].sort();
+    folderFilter.innerHTML = '<option value="">All Folders</option>';
+    folders.forEach(f => {
+      const option = document.createElement('option');
+      option.value = f;
+      option.textContent = f;
+      folderFilter.appendChild(option);
+    });
+    folderFilter.classList.toggle('hidden', !isPremiumUser);
+  }
+
   function updateTrashBadge() {
+    const trashInfo = document.getElementById('trashInfo');
+    if (trashInfo) trashInfo.textContent = `Last ${getMaxTrashSize()} deleted`;
     if (trashEntries.length > 0) {
       trashCountBadge.textContent = trashEntries.length;
       trashCountBadge.classList.remove('hidden');
@@ -240,12 +429,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedDate = formatRelativeDate(entry.date);
     const hasComment = entry.comment && entry.comment.trim() !== '';
     const hasTags = entry.tags && entry.tags.length > 0;
+    const hasFolder = isPremiumUser && entry.folder;
     const isFav = entry.isFavourite;
 
     div.innerHTML = `
       <div class="entry-header">
         <div class="entry-header-left">
           <span class="entry-date">${formattedDate}</span>
+          ${hasFolder ? `<span class="entry-folder">${escapeHtml(entry.folder)}</span>` : ''}
         </div>
         <div class="entry-header-right">
           <button class="icon-btn copy-btn" title="Copy">${icons.copy}</button>
@@ -399,8 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       trashEntries.unshift(trashedEntry);
       
-      if (trashEntries.length > MAX_TRASH_SIZE) {
-        trashEntries = trashEntries.slice(0, MAX_TRASH_SIZE);
+      if (trashEntries.length > getMaxTrashSize()) {
+        trashEntries = trashEntries.slice(0, getMaxTrashSize());
       }
       
       allEntries = allEntries.filter(e => e.id !== id);
@@ -423,6 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTrash();
         updateTrashBadge();
         populateTagFilter();
+        populateFolderFilter();
       });
     }
   }
