@@ -119,9 +119,10 @@ if (!window.myDiaryInjected) {
               `).join("")}
             </div>
             <div class="my-diary-custom-tag ${!canAddCustomTag ? "my-diary-limited" : ""}">
-              <input type="text" id="my-diary-new-tag" placeholder="${canAddCustomTag ? "Custom tag..." : "Upgrade for more custom tags"}" ${!canAddCustomTag ? "disabled" : ""}>
+              <input type="text" id="my-diary-new-tag" placeholder="${canAddCustomTag ? "Custom tag..." : "Custom tag limit reached"}" ${!canAddCustomTag ? "disabled" : ""}>
               <button type="button" id="my-diary-add-tag" ${!canAddCustomTag ? "disabled" : ""}>${icons.plus}</button>
             </div>
+            ${!canAddCustomTag ? '<a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-upgrade-tag-link">Upgrade for more custom tags</a>' : ""}
           </div>
 
           <div class="my-diary-field">
@@ -201,6 +202,11 @@ if (!window.myDiaryInjected) {
       if (e.target === overlay) closeModal();
       const editLink = e.target.closest(".my-diary-edit-pro-link");
       if (editLink) {
+        e.preventDefault();
+        chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
+      }
+      const upgradeTagLink = e.target.closest(".my-diary-upgrade-tag-link");
+      if (upgradeTagLink) {
         e.preventDefault();
         chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
       }

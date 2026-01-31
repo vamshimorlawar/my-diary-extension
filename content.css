@@ -126,6 +126,10 @@
   -webkit-text-fill-color: #f9fafb !important;
 }
 
+#my-diary-modal-overlay.my-diary-theme-dark .my-diary-upgrade-tag-link {
+  color: #a5b4fc;
+}
+
 .my-diary-modal {
   background: #fff;
   border-radius: 8px;
@@ -646,6 +650,18 @@
 .my-diary-limited button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.my-diary-upgrade-tag-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.my-diary-upgrade-tag-link:hover {
+  text-decoration: underline;
 }
 
 .my-diary-content::-webkit-scrollbar,

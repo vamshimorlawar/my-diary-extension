@@ -789,6 +789,45 @@ header h1 {
   cursor: pointer;
 }
 
+.settings-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.settings-footer-credit {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.settings-footer-credit a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.settings-footer-credit a:hover {
+  text-decoration: underline;
+}
+
+.settings-footer-links {
+  font-size: 11px;
+}
+
+.settings-footer-links a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.settings-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.settings-footer-sep {
+  color: var(--text-muted);
+  margin: 0 6px;
+}
+
 .export-menu {
   position: fixed;
   background: var(--bg-primary);
