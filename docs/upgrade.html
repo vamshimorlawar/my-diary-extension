@@ -39,6 +39,19 @@
       border-color: #4f46e5;
       border-width: 2px;
     }
+    .pricing-card.free {
+      opacity: 0.9;
+    }
+    .pricing-card.free .btn-current {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 20px;
+      background: #e5e7eb;
+      color: #6b7280;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
     .pricing-card h2 { margin-top: 0; font-size: 1.1rem; }
     .price { font-size: 1.75rem; font-weight: 700; color: #4f46e5; margin: 8px 0; }
     .price-note { font-size: 0.9rem; color: #6b7280; margin-bottom: 12px; }
@@ -97,6 +110,20 @@
 
   <h2>Choose your plan</h2>
   <div class="pricing-grid">
+    <div class="pricing-card free">
+      <h2>Free</h2>
+      <div class="price">$0</div>
+      <div class="price-note">forever</div>
+      <ul>
+        <li>Up to 50 entries</li>
+        <li>5 items in trash</li>
+        <li>3 custom tags + 6 default</li>
+        <li>Search & filter</li>
+        <li>Favourites</li>
+        <li>Copy & comments</li>
+      </ul>
+      <span class="btn-current">Default plan</span>
+    </div>
     <div class="pricing-card">
       <h2>Monthly</h2>
       <div class="price">$3</div>
@@ -116,8 +143,12 @@
       <div class="price">$30</div>
       <div class="price-note">per year · Save $6</div>
       <ul>
-        <li>Everything in Monthly</li>
-        <li>Best value</li>
+        <li>Unlimited entries</li>
+        <li>50 items in trash</li>
+        <li>Unlimited custom tags</li>
+        <li>Export to JSON & Markdown</li>
+        <li>Dark mode</li>
+        <li>Folders & categories</li>
       </ul>
       <a href="https://vamshi466.gumroad.com/l/byirmi" target="_blank" class="btn">Get Yearly</a>
     </div>

@@ -5,7 +5,7 @@ const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
 // Gumroad config - Product ID from Gumroad dashboard
 const GUMROAD_PRODUCT_ID = "cxGbdmSnLsvOeIvGQZAWsQ==";
 // Set to true to accept Gumroad test keys (for testing - do a test purchase while logged in)
-const ALLOW_TEST_KEYS = false;
+const ALLOW_TEST_KEYS = true;
 
 async function verifyGumroadLicense(licenseKey) {
   const key = licenseKey.trim();

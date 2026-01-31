@@ -121,14 +121,15 @@ header h1 {
 
 .header-upgrade {
   margin-left: auto;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   text-decoration: none;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--radius);
   transition: all var(--transition);
+  white-space: nowrap;
 }
 
 .header-upgrade:hover {
@@ -142,8 +143,9 @@ header h1 {
   font-weight: 600;
   color: white;
   background: rgba(255, 255, 255, 0.25);
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: var(--radius);
+  white-space: nowrap;
 }
 
 .upgrade-banner {
@@ -658,28 +660,65 @@ header h1 {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.settings-section h3 {
+.settings-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.settings-card h3 {
   font-size: 13px;
   font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-plan-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
-.settings-desc {
+.settings-label {
   font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
+  color: var(--text-muted);
 }
 
-.settings-desc.success {
+.settings-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-value.success {
   color: var(--success);
 }
 
-.deactivate-link {
+.settings-subtitle {
   font-size: 11px;
   color: var(--text-muted);
-  margin-left: 8px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.deactivate-link {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
 }
 .deactivate-link:hover {
   color: var(--danger);
@@ -689,7 +728,12 @@ header h1 {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 8px;
+}
+
+.license-form-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .license-form input {
@@ -700,7 +744,17 @@ header h1 {
 }
 
 .license-form .btn-primary {
-  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.btn-upgrade-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+}
+.btn-upgrade-link:hover {
+  text-decoration: underline;
 }
 
 .license-message {
@@ -713,11 +767,6 @@ header h1 {
 
 .license-message.error {
   color: var(--danger);
-}
-
-.settings-hint {
-  font-size: 11px;
-  color: var(--text-muted);
 }
 
 .settings-toggle {

@@ -231,6 +231,7 @@
   color: #fff;
 }
 
+/* Input fields - match popup search styling (padding, border, bg, font) */
 .my-diary-custom-tag {
   display: flex;
   gap: 6px;
@@ -238,6 +239,12 @@
 
 .my-diary-custom-tag input {
   flex: 1;
+  width: 100%;
+}
+
+.my-diary-custom-tag input,
+.my-diary-folder-new,
+#my-diary-comment {
   padding: 6px 8px;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
@@ -253,12 +260,16 @@
   appearance: none !important;
 }
 
-.my-diary-custom-tag input::placeholder {
+.my-diary-custom-tag input::placeholder,
+.my-diary-folder-new::placeholder,
+#my-diary-comment::placeholder {
   color: #9ca3af !important;
   font-size: 12px;
 }
 
-.my-diary-custom-tag input:focus {
+.my-diary-custom-tag input:focus,
+.my-diary-folder-new:focus,
+#my-diary-comment:focus {
   border-color: #4f46e5;
   background: #ffffff !important;
   background-color: #ffffff !important;
@@ -287,30 +298,6 @@
 
 .my-diary-folder-new {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: inherit;
-  background: #f9fafb !important;
-  background-color: #f9fafb !important;
-  color: #111827;
-  -webkit-text-fill-color: #111827 !important;
-  outline: none;
-  transition: all 0.15s ease;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-}
-
-.my-diary-folder-new::placeholder {
-  color: #9ca3af;
-  font-size: 12px;
-}
-
-.my-diary-folder-new:focus {
-  border-color: #4f46e5;
-  background: #ffffff !important;
-  background-color: #ffffff !important;
 }
 
 .my-diary-custom-tag button {
@@ -338,33 +325,9 @@
 
 #my-diary-comment {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: inherit;
   resize: vertical;
   min-height: 60px;
-  background: #f9fafb !important;
-  background-color: #f9fafb !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-  outline: none;
-  transition: all 0.15s ease;
   line-height: 1.5;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-}
-
-#my-diary-comment::placeholder {
-  color: #9ca3af !important;
-  font-size: 12px;
-}
-
-#my-diary-comment:focus {
-  border-color: #4f46e5;
-  background: #ffffff !important;
-  background-color: #ffffff !important;
 }
 
 .my-diary-footer {

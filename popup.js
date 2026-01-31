@@ -265,6 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateLicenseUI() {
     const statusEl = document.getElementById('licenseStatus');
+    const expiryEl = document.getElementById('licenseExpiry');
+    const subtitleEl = document.getElementById('licenseSubtitle');
     const formEl = document.getElementById('licenseForm');
     const msgEl = document.getElementById('licenseMessage');
     const darkSection = document.getElementById('darkModeSection');
@@ -275,20 +277,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const lic = response?.license;
       if (isPremiumUser && lic) {
         const planLabel = lic.plan === 'monthly' ? 'Monthly' : lic.plan === 'yearly' ? 'Yearly' : 'Lifetime';
-        let statusText = `Pro (${planLabel})`;
-        const expiresStr = formatExpiryDate(lic.expiresAt);
-        if (expiresStr) statusText += ` · Expires ${expiresStr}`;
-        else if (lic.plan !== 'lifetime' && lic.recurrence) statusText += ' · Renews automatically';
-        statusEl.textContent = statusText;
+        statusEl.textContent = `Pro (${planLabel})`;
         statusEl.classList.add('success');
+        if (expiryEl) {
+          const expiresStr = formatExpiryDate(lic.expiresAt);
+          if (expiresStr) {
+            expiryEl.textContent = `Expires ${expiresStr}`;
+            expiryEl.classList.remove('hidden');
+          } else if (lic.plan !== 'lifetime' && lic.recurrence) {
+            expiryEl.textContent = 'Renews automatically';
+            expiryEl.classList.remove('hidden');
+          } else {
+            expiryEl.classList.add('hidden');
+          }
+        }
+        if (subtitleEl) {
+          subtitleEl.textContent = 'You have access to all Pro features.';
+          subtitleEl.classList.remove('hidden');
+        }
         formEl.classList.add('hidden');
         if (msgEl) msgEl.classList.add('hidden');
         if (deactivateLink) deactivateLink.classList.remove('hidden');
         if (darkSection) darkSection.classList.remove('hidden');
         loadTheme();
       } else {
-        statusEl.textContent = 'Free plan';
+        statusEl.textContent = 'Free';
         statusEl.classList.remove('success');
+        if (expiryEl) expiryEl.classList.add('hidden');
+        if (subtitleEl) {
+          subtitleEl.textContent = 'Upgrade for unlimited entries, export, dark mode & folders.';
+          subtitleEl.classList.remove('hidden');
+        }
         formEl.classList.remove('hidden');
         if (deactivateLink) deactivateLink.classList.add('hidden');
         if (darkSection) darkSection.classList.add('hidden');
