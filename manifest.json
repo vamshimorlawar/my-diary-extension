@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "My Diary",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Save selected text snippets to your personal diary with notes and comments",
   "permissions": [
     "contextMenus",
