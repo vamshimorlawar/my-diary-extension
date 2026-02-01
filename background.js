@@ -1,3 +1,89 @@
+const FREE_MAX_ENTRIES = 10;
+const PREMIUM_MAX_TRASH = 50;
+const DEFAULT_TAGS = ["text", "link", "quote", "code", "idea", "todo"];
+
+// Gumroad config - Product ID from Gumroad dashboard
+const GUMROAD_PRODUCT_ID = "cxGbdmSnLsvOeIvGQZAWsQ==";
+// Set to true to accept Gumroad test keys (for testing - do a test purchase while logged in)
+const ALLOW_TEST_KEYS = true;
+const REVERIFY_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+async function verifyGumroadLicense(licenseKey) {
+  const key = licenseKey.trim();
+  if (!key || key.length < 10) return { valid: false, reason: "invalid_format" };
+  try {
+    const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_id: GUMROAD_PRODUCT_ID,
+        license_key: key,
+        increment_uses_count: false
+      })
+    });
+    const data = await res.json();
+    if (!data.success) return { valid: false, reason: "invalid", message: data.message || "" };
+    const p = data.purchase || {};
+    if (p.test && !ALLOW_TEST_KEYS) return { valid: false, reason: "test_key" };
+    if (p.refunded || p.chargebacked) return { valid: false, reason: "refunded" };
+    const endedAt = p.subscription_ended_at || p.subscription_cancelled_at || p.subscription_failed_at;
+    if (endedAt && new Date(endedAt) <= new Date()) return { valid: false, reason: "expired", expiresAt: endedAt };
+    return {
+      valid: true,
+      key: p.license_key,
+      plan: p.recurrence || "lifetime",
+      expiresAt: endedAt || null,
+      recurrence: p.recurrence
+    };
+  } catch (err) {
+    return { valid: false, reason: "network_error" };
+  }
+}
+
+async function getPremiumStatus() {
+  const { premiumLicense } = await chrome.storage.sync.get(["premiumLicense"]);
+  const lic = premiumLicense;
+
+  if (!lic?.licenseKey) return { premium: false };
+
+  const now = Date.now();
+  const lastVerifiedAt = lic.lastVerifiedAt ? new Date(lic.lastVerifiedAt).getTime() : 0;
+  const within24h = (now - lastVerifiedAt) < REVERIFY_INTERVAL_MS;
+
+  if (lic.lastVerifiedAt && within24h) {
+    return { premium: lic.valid === true };
+  }
+
+  try {
+    const result = await verifyGumroadLicense(lic.licenseKey);
+
+    if (result.valid) {
+      await chrome.storage.sync.set({
+        premiumLicense: {
+          ...lic,
+          valid: true,
+          licenseKey: lic.licenseKey,
+          key: result.key ? result.key.substring(0, 8) + "..." : "",
+          plan: result.plan,
+          expiresAt: result.expiresAt || null,
+          recurrence: result.recurrence,
+          lastVerifiedAt: new Date().toISOString()
+        }
+      });
+      return { premium: true };
+    }
+
+    if (result.reason === "network_error") {
+      return { premium: lic.valid === true };
+    }
+
+    await chrome.storage.sync.remove(["premiumLicense"]);
+    return { premium: false };
+  } catch (err) {
+    return { premium: lic.valid === true };
+  }
+}
+
 // Create context menu item when extension is installed
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -37,43 +123,133 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // Listen for save from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "saveDiaryEntry") {
-    const entry = {
-      id: Date.now().toString(),
-      text: message.data.text,
-      url: message.data.url,
-      pageTitle: message.data.pageTitle,
-      date: new Date().toISOString(),
-      tags: message.data.tags || [],
-      comment: message.data.comment || "",
-      isFavourite: false
-    };
-
-    chrome.storage.local.get(["diaryEntries", "customTags"], (result) => {
+    (async () => {
+      const premium = (await getPremiumStatus()).premium;
+      const result = await chrome.storage.local.get(["diaryEntries", "customTags"]);
       const entries = result.diaryEntries || [];
-      entries.unshift(entry);
-      
-      // Save any new custom tags
-      const existingTags = result.customTags || [];
-      const newTags = message.data.tags.filter(t => !existingTags.includes(t) && !["text", "link", "quote", "code", "idea", "todo"].includes(t));
-      const allTags = [...existingTags, ...newTags];
+      const customTags = result.customTags || [];
 
-      chrome.storage.local.set({ diaryEntries: entries, customTags: allTags }, () => {
-        // Show notification badge
-        chrome.action.setBadgeText({ text: "✓" });
-        chrome.action.setBadgeBackgroundColor({ color: "#4CAF50" });
-        setTimeout(() => {
-          chrome.action.setBadgeText({ text: "" });
-        }, 2000);
-        sendResponse({ success: true });
-      });
-    });
-    return true; // Keep channel open for async response
+      // Free tier: soft limit - block new saves when at/over limit
+      if (!premium && entries.length >= FREE_MAX_ENTRIES) {
+        sendResponse({ success: false, reason: "entry_limit", limit: FREE_MAX_ENTRIES });
+        return;
+      }
+
+      // Free tier: custom tag limit - count only custom tags (exclude defaults)
+      const customOnly = customTags.filter(t => !DEFAULT_TAGS.includes(t));
+      const newTagsFromData = (message.data.tags || []).filter(t => !DEFAULT_TAGS.includes(t));
+      const wouldExceedCustomTags = !premium && customOnly.length >= 3;
+      const addingNewCustom = newTagsFromData.some(t => !customTags.includes(t));
+      if (wouldExceedCustomTags && addingNewCustom) {
+        sendResponse({ success: false, reason: "custom_tag_limit", limit: 3 });
+        return;
+      }
+
+      const folder = (message.data.folder || "").trim();
+      const entry = {
+        id: Date.now().toString(),
+        text: message.data.text,
+        url: message.data.url,
+        pageTitle: message.data.pageTitle,
+        date: new Date().toISOString(),
+        tags: message.data.tags || [],
+        comment: message.data.comment || "",
+        folder: folder,
+        isFavourite: false
+      };
+
+      entries.unshift(entry);
+
+      const existingTags = customTags;
+      const newTags = (message.data.tags || []).filter(t => !existingTags.includes(t) && !DEFAULT_TAGS.includes(t));
+      const allTags = [...existingTags, ...newTags];
+      const customFolders = (await chrome.storage.local.get(["customFolders"])).customFolders || [];
+      if (folder && !customFolders.includes(folder) && !["General", "Research", "Personal", "Work"].includes(folder)) {
+        customFolders.push(folder);
+      }
+      await chrome.storage.local.set({ diaryEntries: entries, customTags: allTags, customFolders });
+
+      chrome.action.setBadgeText({ text: "✓" });
+      chrome.action.setBadgeBackgroundColor({ color: "#4CAF50" });
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: "" });
+      }, 2000);
+      sendResponse({ success: true });
+    })();
+    return true;
+  }
+
+  if (message.action === "checkPremium") {
+    (async () => {
+      const premium = (await getPremiumStatus()).premium;
+      sendResponse({ premium });
+    })();
+    return true;
+  }
+
+  if (message.action === "activateLicense") {
+    (async () => {
+      const result = await verifyGumroadLicense(message.key || "");
+      if (result.valid) {
+        await chrome.storage.sync.set({
+          premiumLicense: {
+            valid: true,
+            licenseKey: result.key,
+            key: result.key ? result.key.substring(0, 8) + "..." : "",
+            plan: result.plan,
+            expiresAt: result.expiresAt || null,
+            recurrence: result.recurrence,
+            lastVerifiedAt: new Date().toISOString()
+          }
+        });
+        sendResponse({ success: true, plan: result.plan, expiresAt: result.expiresAt });
+      } else {
+        sendResponse({ success: false, reason: result.reason, message: result.message, expiresAt: result.expiresAt });
+      }
+    })();
+    return true;
+  }
+
+  if (message.action === "getLicenseInfo") {
+    (async () => {
+      const result = await chrome.storage.sync.get(["premiumLicense"]);
+      const lic = result.premiumLicense;
+      if (!lic) {
+        sendResponse({ premium: false, license: null });
+        return;
+      }
+      const premium = (await getPremiumStatus()).premium;
+      sendResponse({ premium, license: lic });
+    })();
+    return true;
   }
 
   if (message.action === "getCustomTags") {
-    chrome.storage.local.get(["customTags"], (result) => {
-      sendResponse({ tags: result.customTags || [] });
-    });
+    (async () => {
+      const premium = (await getPremiumStatus()).premium;
+      const result = await chrome.storage.local.get(["customTags"]);
+      const tags = result.customTags || [];
+      const customOnly = tags.filter(t => !DEFAULT_TAGS.includes(t));
+      const canAddCustomTag = premium || customOnly.length < 3;
+      sendResponse({ tags, canAddCustomTag, isPremium: premium });
+    })();
+    return true;
+  }
+
+  if (message.action === "getFoldersForModal") {
+    (async () => {
+      const premium = (await getPremiumStatus()).premium;
+      if (!premium) {
+        sendResponse({ folders: [], isPremium: false });
+        return;
+      }
+      const result = await chrome.storage.local.get(["diaryEntries", "customFolders"]);
+      const entries = result.diaryEntries || [];
+      const customFolders = result.customFolders || [];
+      const fromEntries = [...new Set(entries.map(e => e.folder).filter(Boolean))];
+      const all = [...new Set([...["General", "Research", "Personal", "Work"], ...fromEntries, ...customFolders])].filter(Boolean).sort();
+      sendResponse({ folders: all, isPremium: true });
+    })();
     return true;
   }
 });

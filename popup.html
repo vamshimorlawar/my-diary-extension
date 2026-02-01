@@ -23,12 +23,18 @@
           <h1>My Diary</h1>
           <p class="subtitle">Saved snippets</p>
         </div>
+        <a id="upgradeLink" href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="header-upgrade">Upgrade to Pro</a>
+        <span id="proBadge" class="header-pro-badge hidden">Pro · <span class="pro-active-label">Active</span></span>
       </div>
     </header>
+    <div id="upgradeBanner" class="upgrade-banner hidden">
+      <p>You've reached the 10-entry limit. <a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank">Upgrade to Pro</a> for unlimited entries.</p>
+    </div>
 
     <div class="tabs">
-      <button class="tab active" data-tab="entries">Entries</button>
+      <button class="tab active" data-tab="entries">Entries <span id="entriesCount" class="badge badge--entries hidden">0</span></button>
       <button class="tab" data-tab="trash">Trash <span id="trashCount" class="badge hidden">0</span></button>
+      <button class="tab" data-tab="settings">Settings</button>
     </div>
 
     <div class="controls" id="entriesControls">
@@ -39,10 +45,14 @@
         </svg>
         <input type="text" id="searchInput" placeholder="Search...">
       </div>
+      <button id="exportBtn" class="btn-outline btn-sm" title="Export (Pro)">Export</button>
       <button id="clearAllBtn" class="btn-outline btn-sm">Clear All</button>
     </div>
 
     <div class="filter-bar" id="filterBar">
+      <select id="folderFilter" class="hidden">
+        <option value="">All Folders</option>
+      </select>
       <select id="tagFilter">
         <option value="">All Tags</option>
       </select>
@@ -54,12 +64,51 @@
     </div>
 
     <div class="controls hidden" id="trashControls">
-      <span class="trash-info">Last 5 deleted</span>
+      <span class="trash-info" id="trashInfo">Last 5 deleted</span>
       <button id="emptyTrashBtn" class="btn-outline btn-sm btn-danger">Empty Trash</button>
     </div>
 
     <div id="entriesContainer"></div>
     <div id="trashContainer" class="hidden"></div>
+    <div id="settingsContainer" class="hidden">
+      <div class="settings-card settings-license">
+        <div class="settings-card-header">
+          <h3>Subscription</h3>
+        </div>
+        <div class="settings-plan-row">
+          <span class="settings-label">Current plan</span>
+          <span class="settings-value" id="licenseStatus">Free</span>
+        </div>
+        <p class="settings-subtitle hidden" id="licenseExpiry"></p>
+        <p class="settings-subtitle" id="licenseSubtitle">Upgrade for unlimited entries, export, dark mode &amp; folders.</p>
+        <a id="deactivateLicenseLink" class="deactivate-link hidden" href="#">Deactivate</a>
+        <div class="license-form" id="licenseForm">
+          <input type="text" id="licenseKeyInput" placeholder="Enter license key (e.g. XXXX-XXXX-XXXX)">
+          <div class="license-form-actions">
+            <button id="activateLicenseBtn" class="btn-primary">Activate</button>
+            <a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="btn-upgrade-link">Get Pro</a>
+          </div>
+          <p id="licenseMessage" class="license-message hidden"></p>
+        </div>
+      </div>
+      <div class="settings-card" id="darkModeSection">
+        <div class="settings-card-header">
+          <h3>Appearance</h3>
+        </div>
+        <label class="settings-toggle">
+          <input type="checkbox" id="darkModeToggle">
+          <span>Dark mode</span>
+        </label>
+      </div>
+      <div class="settings-footer">
+        <p class="settings-footer-credit">Payments powered by <a href="https://gumroad.com" target="_blank" rel="noopener">Gumroad</a></p>
+        <div class="settings-footer-links">
+          <a href="https://gumroad.com/communities/2561348765794/OzvlUC3WGxBrV5r7Lf5QHw==" target="_blank" rel="noopener">Community</a>
+          <span class="settings-footer-sep">·</span>
+          <a href="mailto:vamshimorlawar@gmail.com">Contact us</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>

@@ -21,17 +21,38 @@ if (!window.myDiaryInjected) {
     const existing = document.getElementById("my-diary-modal-overlay");
     if (existing) existing.remove();
 
-    chrome.runtime.sendMessage({ action: "getCustomTags" }, (response) => {
-      const customTags = response?.tags || [];
-      createModal(data, customTags);
+    chrome.storage.sync.get(["theme", "contentModalShowCustomTags"], (themeResult) => {
+      const isDark = themeResult.theme === "dark";
+      const showCustomTags = themeResult.contentModalShowCustomTags ?? true;
+      chrome.runtime.sendMessage({ action: "getCustomTags" }, (tagResponse) => {
+        const customTags = tagResponse?.tags || [];
+        const canAddCustomTag = tagResponse?.canAddCustomTag !== false;
+        chrome.runtime.sendMessage({ action: "getFoldersForModal" }, (folderResponse) => {
+          const folders = folderResponse?.folders || [];
+          const showFolder = folderResponse?.isPremium === true;
+          createModal(data, customTags, canAddCustomTag, isDark, folders, showFolder, showCustomTags);
+        });
+      });
     });
   }
 
-  function createModal(data, customTags) {
-    const allTags = [...DEFAULT_TAGS, ...customTags];
-
+  function createModal(data, customTags, canAddCustomTag = true, isDark = false, folders = [], showFolder = false, showCustomTags = true) {
     const overlay = document.createElement("div");
     overlay.id = "my-diary-modal-overlay";
+    if (isDark) overlay.classList.add("my-diary-theme-dark");
+    const folderField = showFolder ? `
+          <div class="my-diary-field">
+            <label>Folder</label>
+            <select id="my-diary-folder">
+              <option value="">None</option>
+              ${folders.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("")}
+            </select>
+            <input type="text" id="my-diary-folder-new" placeholder="Or type new folder..." class="my-diary-folder-new" style="margin-top: 6px;">
+          </div>
+        ` : "";
+    const upgradeHtml = showFolder
+      ? '<span class="my-diary-pro-badge">Pro · <span class="pro-active-label">Active</span></span>'
+      : '<a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-upgrade-link">Upgrade to Pro</a>';
     overlay.innerHTML = `
       <div class="my-diary-modal">
         <div class="my-diary-header">
@@ -39,31 +60,69 @@ if (!window.myDiaryInjected) {
             ${icons.book}
             <span>Add to My Diary</span>
           </div>
-          <button class="my-diary-close">${icons.x}</button>
+          <div class="my-diary-header-right">
+            ${upgradeHtml}
+            <button class="my-diary-close">${icons.x}</button>
+          </div>
         </div>
         
         <div class="my-diary-content">
-          <div class="my-diary-field">
-            <label>Selected text</label>
-            <div class="my-diary-selected-text">${escapeHtml(data.text)}</div>
+          <div class="my-diary-field" id="my-diary-text-field">
+            ${showFolder
+              ? '<div class="my-diary-field-label-row"><label>Selected text</label><button type="button" class="my-diary-edit-btn" data-target="text">Edit</button></div>'
+              : '<div class="my-diary-field-label-row"><label>Selected text</label><a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-edit-pro-link">Edit with Pro</a></div>'
+            }
+            <div class="my-diary-text-view my-diary-selected-text" id="my-diary-text-view">${escapeHtml(data.text)}</div>
+            ${showFolder ? `<div class="my-diary-text-edit hidden" id="my-diary-text-edit"><textarea class="my-diary-selected-text my-diary-editable" rows="3">${escapeHtml(data.text)}</textarea></div>` : ""}
           </div>
 
-          <div class="my-diary-field">
-            <label>Source</label>
-            <div class="my-diary-source">${escapeHtml(data.pageTitle || data.url)}</div>
+          <div class="my-diary-field" id="my-diary-source-field">
+            ${showFolder
+              ? '<div class="my-diary-field-label-row"><label>Source</label><button type="button" class="my-diary-edit-btn" data-target="source">Edit</button></div>'
+              : '<div class="my-diary-field-label-row"><label>Source</label><a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-edit-pro-link">Edit with Pro</a></div>'
+            }
+            <div class="my-diary-source-view my-diary-source" id="my-diary-source-view">
+              ${showFolder
+                ? `<a href="${escapeHtml(data.url || "#")}" target="_blank" rel="noopener" class="my-diary-source-link">${escapeHtml(data.pageTitle || data.url || "")}</a>`
+                : escapeHtml(data.pageTitle || data.url || "")
+              }
+            </div>
+            ${showFolder ? `
+              <div class="my-diary-source-edit hidden" id="my-diary-source-edit">
+                <div class="my-diary-source-edit-row">
+                  <label class="my-diary-source-edit-label">Display text</label>
+                  <input type="text" class="my-diary-source-input" id="my-diary-source-title" placeholder="Link text" value="${escapeHtml(data.pageTitle || "")}">
+                </div>
+                <div class="my-diary-source-edit-row">
+                  <label class="my-diary-source-edit-label">Link</label>
+                  <input type="text" class="my-diary-source-input" id="my-diary-source-url" placeholder="https://..." value="${escapeHtml(data.url || "")}">
+                </div>
+              </div>
+            ` : ""}
           </div>
-
+          ${folderField}
           <div class="my-diary-field">
-            <label>Tags</label>
-            <div class="my-diary-tags-list">
-              ${allTags.map(tag => `
+            <div class="my-diary-field-label-row">
+              <label>Tags</label>
+              <button type="button" class="my-diary-custom-tags-toggle" id="my-diary-custom-tags-toggle" aria-expanded="${showCustomTags}">
+                ${showCustomTags ? "Hide" : "Show"}
+              </button>
+            </div>
+            <div class="my-diary-tags-list my-diary-default-tags">
+              ${DEFAULT_TAGS.map(tag => `
                 <button type="button" class="my-diary-tag-btn" data-tag="${escapeHtml(tag)}">${escapeHtml(toTitleCase(tag))}</button>
               `).join("")}
             </div>
-            <div class="my-diary-custom-tag">
-              <input type="text" id="my-diary-new-tag" placeholder="Custom tag...">
-              <button type="button" id="my-diary-add-tag">${icons.plus}</button>
+            <div class="my-diary-tags-list my-diary-custom-tags-list ${showCustomTags ? "" : "hidden"}" id="my-diary-custom-tags-list">
+              ${customTags.map(tag => `
+                <button type="button" class="my-diary-tag-btn" data-tag="${escapeHtml(tag)}">${escapeHtml(toTitleCase(tag))}</button>
+              `).join("")}
             </div>
+            <div class="my-diary-custom-tag ${!canAddCustomTag ? "my-diary-limited" : ""}">
+              <input type="text" id="my-diary-new-tag" placeholder="${canAddCustomTag ? "Custom tag..." : "Custom tag limit reached"}" ${!canAddCustomTag ? "disabled" : ""}>
+              <button type="button" id="my-diary-add-tag" ${!canAddCustomTag ? "disabled" : ""}>${icons.plus}</button>
+            </div>
+            ${!canAddCustomTag ? '<a href="https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" target="_blank" class="my-diary-upgrade-tag-link">Upgrade for more custom tags</a>' : ""}
           </div>
 
           <div class="my-diary-field">
@@ -82,13 +141,86 @@ if (!window.myDiaryInjected) {
     document.body.appendChild(overlay);
 
     let selectedTags = [];
+    let editedText = data.text;
+    let editedPageTitle = data.pageTitle || "";
+    let editedUrl = data.url || "";
 
     const closeModal = () => overlay.remove();
+
+    // Premium: Edit/Done toggle for selected text and source
+    if (showFolder) {
+      overlay.querySelectorAll(".my-diary-edit-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.target;
+          if (target === "text") {
+            const view = overlay.querySelector("#my-diary-text-view");
+            const edit = overlay.querySelector("#my-diary-text-edit");
+            const textarea = edit?.querySelector("textarea");
+            if (edit?.classList.contains("hidden")) {
+              view.classList.add("hidden");
+              edit.classList.remove("hidden");
+              textarea.value = editedText;
+              btn.textContent = "Done";
+            } else {
+              editedText = textarea.value;
+              view.textContent = editedText;
+              view.classList.remove("hidden");
+              edit.classList.add("hidden");
+              btn.textContent = "Edit";
+            }
+          } else if (target === "source") {
+            const view = overlay.querySelector("#my-diary-source-view");
+            const edit = overlay.querySelector("#my-diary-source-edit");
+            const titleInput = overlay.querySelector("#my-diary-source-title");
+            const urlInput = overlay.querySelector("#my-diary-source-url");
+            if (edit?.classList.contains("hidden")) {
+              view.classList.add("hidden");
+              edit.classList.remove("hidden");
+              titleInput.value = editedPageTitle;
+              urlInput.value = editedUrl;
+              btn.textContent = "Done";
+            } else {
+              editedPageTitle = titleInput.value.trim();
+              editedUrl = urlInput.value.trim();
+              const link = view.querySelector(".my-diary-source-link");
+              if (link) {
+                link.href = editedUrl || "#";
+                link.textContent = editedPageTitle || editedUrl || "";
+              }
+              view.classList.remove("hidden");
+              edit.classList.add("hidden");
+              btn.textContent = "Edit";
+            }
+          }
+        });
+      });
+    }
 
     overlay.querySelector(".my-diary-close").addEventListener("click", closeModal);
     overlay.querySelector(".my-diary-btn-cancel").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal();
+      const editLink = e.target.closest(".my-diary-edit-pro-link");
+      if (editLink) {
+        e.preventDefault();
+        chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
+      }
+      const upgradeTagLink = e.target.closest(".my-diary-upgrade-tag-link");
+      if (upgradeTagLink) {
+        e.preventDefault();
+        chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
+      }
+    });
+
+    // Custom tags show/hide toggle
+    const customTagsToggle = overlay.querySelector("#my-diary-custom-tags-toggle");
+    const customTagsList = overlay.querySelector("#my-diary-custom-tags-list");
+    customTagsToggle.addEventListener("click", () => {
+      const isHidden = customTagsList.classList.contains("hidden");
+      customTagsList.classList.toggle("hidden", !isHidden);
+      customTagsToggle.setAttribute("aria-expanded", isHidden);
+      customTagsToggle.textContent = (isHidden ? "Hide" : "Show");
+      chrome.storage.sync.set({ contentModalShowCustomTags: isHidden });
     });
 
     // Tag selection
@@ -118,6 +250,7 @@ if (!window.myDiaryInjected) {
     });
 
     function addCustomTag() {
+      if (!canAddCustomTag) return;
       const tag = newTagInput.value.trim().toLowerCase();
       if (tag && !selectedTags.includes(tag)) {
         const tagBtn = document.createElement("button");
@@ -134,7 +267,7 @@ if (!window.myDiaryInjected) {
             tagBtn.classList.add("selected");
           }
         });
-        overlay.querySelector(".my-diary-tags-list").appendChild(tagBtn);
+        overlay.querySelector("#my-diary-custom-tags-list").appendChild(tagBtn);
         
         selectedTags.push(tag);
         newTagInput.value = "";
@@ -145,14 +278,24 @@ if (!window.myDiaryInjected) {
     overlay.querySelector(".my-diary-btn-save").addEventListener("click", () => {
       const comment = overlay.querySelector("#my-diary-comment").value;
       
+      const folderSelect = overlay.querySelector("#my-diary-folder");
+      const folderNewInput = overlay.querySelector("#my-diary-folder-new");
+      const folderNew = folderNewInput ? folderNewInput.value.trim() : "";
+      const folder = folderNew || (folderSelect ? folderSelect.value : "");
+      
+      const text = showFolder ? editedText : data.text;
+      const pageTitle = showFolder ? editedPageTitle : data.pageTitle;
+      const url = showFolder ? editedUrl : data.url;
+      
       chrome.runtime.sendMessage({
         action: "saveDiaryEntry",
         data: {
-          text: data.text,
-          url: data.url,
-          pageTitle: data.pageTitle,
+          text,
+          url: url || data.url,
+          pageTitle: pageTitle || data.pageTitle,
           tags: selectedTags,
-          comment: comment
+          comment,
+          folder
         }
       }, (response) => {
         if (response?.success) {
@@ -164,9 +307,29 @@ if (!window.myDiaryInjected) {
             </div>
           `;
           setTimeout(closeModal, 800);
+        } else if (response?.reason === "entry_limit") {
+          showUpgradePrompt(overlay, "You've reached the 10-entry limit on the free plan. Upgrade to Pro for unlimited entries.");
+        } else if (response?.reason === "custom_tag_limit") {
+          showUpgradePrompt(overlay, "Free plan allows up to 3 custom tags. Upgrade for unlimited tags.");
         }
       });
     });
+
+    function showUpgradePrompt(overlayEl, message) {
+      const modal = overlayEl.querySelector(".my-diary-modal");
+      modal.innerHTML = `
+        <div class="my-diary-upgrade-prompt">
+          <p class="my-diary-upgrade-message">${message}</p>
+          <a href="#" id="my-diary-upgrade-link" class="my-diary-btn my-diary-btn-save">Upgrade to Premium</a>
+          <button class="my-diary-btn my-diary-btn-cancel" id="my-diary-upgrade-close">Close</button>
+        </div>
+      `;
+      overlayEl.querySelector("#my-diary-upgrade-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        chrome.tabs.create({ url: "https://vamshimorlawar.github.io/my-diary-extension/upgrade.html" });
+      });
+      overlayEl.querySelector("#my-diary-upgrade-close").addEventListener("click", closeModal);
+    }
 
     document.addEventListener("keydown", function escHandler(e) {
       if (e.key === "Escape") {
