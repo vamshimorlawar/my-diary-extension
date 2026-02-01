@@ -55,6 +55,9 @@
       font-size: 14px;
     }
     .pro-try-btn:hover { background: #4338ca; }
+    .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .page-header img { width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0; }
+    .page-header .subtitle { margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -65,8 +68,13 @@
     <a href="privacy.html">Privacy Policy</a>
   </div>
 
-  <h1>Releases</h1>
-  <p class="subtitle">What’s new in each version</p>
+  <div class="page-header">
+    <img src="../icons/icon48.png" alt="" width="48" height="48">
+    <div>
+      <h1>Releases</h1>
+      <p class="subtitle">What’s new in each version</p>
+    </div>
+  </div>
 
   <div class="pro-launch">
     <h2>Introducing My Diary Pro</h2>
@@ -155,7 +163,7 @@
   </div>
 
   <footer>
-    <p>&copy; 2026 My Diary Extension. <a href="https://github.com/vamshimorlawar/my-diary-extension">View on GitHub</a></p>
+    <p>&copy; 2026 My Diary Extension.</p>
   </footer>
 </body>
 </html>

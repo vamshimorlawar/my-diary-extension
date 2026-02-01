@@ -26,6 +26,9 @@
     .nav a:hover { text-decoration: underline; }
     .updated { color: #888; font-size: 0.9rem; margin-bottom: 32px; }
     footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; color: #888; font-size: 0.9rem; }
+    .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .page-header img { width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0; }
+    .page-header .updated { margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -36,8 +39,13 @@
     <a href="privacy.html">Privacy Policy</a>
   </div>
 
-  <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: January 26, 2026</p>
+  <div class="page-header">
+    <img src="../icons/icon48.png" alt="" width="48" height="48">
+    <div>
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: February 1, 2026</p>
+    </div>
+  </div>
 
   <h2>Overview</h2>
   <p>My Diary ("the Extension") is committed to protecting your privacy. This privacy policy explains how we handle your data.</p>
@@ -46,15 +54,16 @@
   <p><strong>We do not collect any personal data.</strong></p>
   <p>The Extension does not:</p>
   <ul>
-    <li>Collect personal information</li>
+    <li>Collect personal information (other than the license key you optionally enter for Pro)</li>
     <li>Track your browsing activity</li>
-    <li>Send any data to external servers</li>
+    <li>Send your diary content or browsing data to any server</li>
     <li>Use analytics or tracking tools</li>
-    <li>Share data with third parties</li>
+    <li>Share your data with third parties</li>
   </ul>
+  <p>For My Diary Pro, the only data sent outside your device is your license key, which is sent to Gumroad for verification (see “My Diary Pro (license verification)” below).</p>
 
   <h2>Data Storage</h2>
-  <p>All data you save using the Extension (text snippets, tags, comments) is stored locally on your device using Chrome's built-in storage API (<code>chrome.storage.local</code>). This data:</p>
+  <p>All data you save using the Extension (text snippets, tags, comments) is stored locally on your device. This data:</p>
   <ul>
     <li>Remains entirely on your device</li>
     <li>Is never transmitted over the internet</li>
@@ -62,17 +71,21 @@
     <li>Can be deleted at any time by clearing the extension data or uninstalling</li>
   </ul>
 
+  <h2>My Diary Pro (license verification)</h2>
+  <p>If you use <strong>My Diary Pro</strong>, you can activate a license key in the extension. When you activate or when we re-verify your license, the extension sends only your license key to Gumroad’s API (<code>api.gumroad.com</code>) to check that it is valid. We do not send diary content, browsing history, or any other personal data. Gumroad’s privacy policy applies to how they handle the verification requests. We do not receive or store your payment details; those are handled entirely by Gumroad.</p>
+
   <h2>Permissions</h2>
   <p>The Extension requires the following permissions:</p>
   <ul>
     <li><strong>contextMenus</strong> - To add "Add to My Diary" option when you right-click selected text</li>
-    <li><strong>storage</strong> - To save your diary entries locally on your device</li>
+    <li><strong>storage</strong> - To save your diary entries and (if you use Pro) your license status locally on your device</li>
     <li><strong>activeTab</strong> - To access the current page URL and title when saving an entry</li>
     <li><strong>scripting</strong> - To display the save dialog on webpages</li>
+    <li><strong>host_permissions (api.gumroad.com)</strong> - Used only for Pro license verification when you activate or when we re-verify your key</li>
   </ul>
 
   <h2>Third-Party Services</h2>
-  <p>The Extension does not integrate with any third-party services or APIs.</p>
+  <p>The Extension uses <strong>Gumroad</strong> only for My Diary Pro license verification. When you enter a license key, it is sent to Gumroad to validate your subscription. No other third-party services or APIs are used. Your diary data is never sent to Gumroad or any other external service.</p>
 
   <h2>Changes to This Policy</h2>
   <p>We may update this privacy policy from time to time. Any changes will be posted on this page with an updated revision date.</p>
@@ -81,7 +94,7 @@
   <p>If you have questions about this privacy policy, please open an issue on our <a href="https://github.com/vamshimorlawar/my-diary-extension/issues">GitHub repository</a>.</p>
 
   <footer>
-    <p>&copy; 2026 My Diary Extension. <a href="https://github.com/vamshimorlawar/my-diary-extension">View on GitHub</a></p>
+    <p>&copy; 2026 My Diary Extension.</p>
   </footer>
 </body>
 </html>

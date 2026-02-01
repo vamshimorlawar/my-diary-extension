@@ -95,6 +95,8 @@
     .license-message.success { color: #10b981; }
     .license-message.error { color: #ef4444; }
     footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; color: #888; font-size: 0.9rem; }
+    .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .page-header img { width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -105,8 +107,13 @@
     <a href="privacy.html">Privacy Policy</a>
   </div>
 
-  <h1>Upgrade to Pro</h1>
-  <p>Unlock unlimited entries, export, dark mode, folders, and more.</p>
+  <div class="page-header">
+    <img src="../icons/icon48.png" alt="" width="48" height="48">
+    <div>
+      <h1>Upgrade to Pro</h1>
+      <p style="margin-bottom: 0;">Unlock unlimited entries, export, dark mode, folders, and more.</p>
+    </div>
+  </div>
 
   <h2>Choose your plan</h2>
   <div class="pricing-grid">
@@ -164,7 +171,7 @@
   <p style="font-size: 0.9rem; color: #888;">Your license type (Monthly or Yearly) and expiry date will be shown in Settings.</p>
 
   <footer>
-    <p>&copy; 2026 My Diary Extension. <a href="https://github.com/vamshimorlawar/my-diary-extension">View on GitHub</a></p>
+    <p>&copy; 2026 My Diary Extension.</p>
   </footer>
 
 </body>
