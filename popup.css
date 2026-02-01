@@ -722,16 +722,6 @@ header h1 {
   line-height: 1.4;
 }
 
-.deactivate-link {
-  display: inline-block;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-.deactivate-link:hover {
-  color: var(--danger);
-}
-
 .license-form {
   display: flex;
   flex-direction: column;

@@ -256,16 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
-  document.getElementById('deactivateLicenseLink')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    chrome.storage.sync.remove(['premiumLicense'], () => {
-      isPremiumUser = false;
-      updateLicenseUI();
-      updateUpgradeUI();
-      populateFolderFilter();
-    });
-  });
-
   function updateLicenseUI() {
     const statusEl = document.getElementById('licenseStatus');
     const expiryEl = document.getElementById('licenseExpiry');
@@ -273,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formEl = document.getElementById('licenseForm');
     const msgEl = document.getElementById('licenseMessage');
     const darkSection = document.getElementById('darkModeSection');
-    const deactivateLink = document.getElementById('deactivateLicenseLink');
     if (!statusEl || !formEl) return;
     chrome.runtime.sendMessage({ action: 'getLicenseInfo' }, (response) => {
       isPremiumUser = response?.premium ?? false;
@@ -300,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         formEl.classList.add('hidden');
         if (msgEl) msgEl.classList.add('hidden');
-        if (deactivateLink) deactivateLink.classList.remove('hidden');
         if (darkSection) darkSection.classList.remove('hidden');
         loadTheme();
       } else {
@@ -312,7 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
           subtitleEl.classList.remove('hidden');
         }
         formEl.classList.remove('hidden');
-        if (deactivateLink) deactivateLink.classList.add('hidden');
         if (darkSection) darkSection.classList.add('hidden');
       }
     });
