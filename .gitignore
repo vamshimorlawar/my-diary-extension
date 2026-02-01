@@ -18,5 +18,5 @@ Thumbs.db
 *.jpg
 *.jpeg
 !icons/*.png
-!images/*.png
-!images/*.jpg
+!docs/images/*.png
+!docs/images/*.jpg
