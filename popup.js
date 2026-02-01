@@ -219,7 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
       test_key: 'This is a test key. Get a real license from the purchase link.',
       refunded: 'This license has been refunded and is no longer valid.',
       expired: 'This subscription has expired. Renew to continue using Pro.',
-      network_error: 'Could not verify. Check your internet connection and try again.'
+      network_error: 'Could not verify. Check your internet connection and try again.',
+      usage_limit: 'This license has already been activated on another device. One license = one device. Get another license for a different device.'
     };
     if (!key) {
       msgEl.textContent = errMsg.invalid_format;

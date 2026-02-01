@@ -7,10 +7,13 @@ const GUMROAD_PRODUCT_ID = "cxGbdmSnLsvOeIvGQZAWsQ==";
 // Set to true to accept Gumroad test keys (for testing - do a test purchase while logged in)
 const ALLOW_TEST_KEYS = true;
 const REVERIFY_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+// Max activations per license key (only checked when user clicks Activate). 1 = one device only.
+const MAX_LICENSE_USES = 1;
 
-async function verifyGumroadLicense(licenseKey) {
+async function verifyGumroadLicense(licenseKey, options = {}) {
   const key = licenseKey.trim();
   if (!key || key.length < 10) return { valid: false, reason: "invalid_format" };
+  const incrementUsesCount = options.incrementUsesCount === true;
   try {
     const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
       method: "POST",
@@ -18,7 +21,7 @@ async function verifyGumroadLicense(licenseKey) {
       body: JSON.stringify({
         product_id: GUMROAD_PRODUCT_ID,
         license_key: key,
-        increment_uses_count: false
+        increment_uses_count: incrementUsesCount
       })
     });
     const data = await res.json();
@@ -28,6 +31,11 @@ async function verifyGumroadLicense(licenseKey) {
     if (p.refunded || p.chargebacked) return { valid: false, reason: "refunded" };
     const endedAt = p.subscription_ended_at || p.subscription_cancelled_at || p.subscription_failed_at;
     if (endedAt && new Date(endedAt) <= new Date()) return { valid: false, reason: "expired", expiresAt: endedAt };
+    // When we just incremented (new activation), enforce device limit
+    const uses = typeof data.uses === "number" ? data.uses : 0;
+    if (incrementUsesCount && uses > MAX_LICENSE_USES) {
+      return { valid: false, reason: "usage_limit", uses, limit: MAX_LICENSE_USES };
+    }
     return {
       valid: true,
       key: p.license_key,
@@ -189,7 +197,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === "activateLicense") {
     (async () => {
-      const result = await verifyGumroadLicense(message.key || "");
+      // Only increment uses when user explicitly activates (so we can enforce device limit)
+      const result = await verifyGumroadLicense(message.key || "", { incrementUsesCount: true });
       if (result.valid) {
         await chrome.storage.sync.set({
           premiumLicense: {
@@ -204,7 +213,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         sendResponse({ success: true, plan: result.plan, expiresAt: result.expiresAt });
       } else {
-        sendResponse({ success: false, reason: result.reason, message: result.message, expiresAt: result.expiresAt });
+        sendResponse({
+          success: false,
+          reason: result.reason,
+          message: result.reason === "usage_limit" ? undefined : result.message,
+          expiresAt: result.expiresAt,
+          uses: result.uses,
+          limit: result.limit
+        });
       }
     })();
     return true;
