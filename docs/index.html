@@ -48,6 +48,8 @@
       flex-shrink: 0;
     }
     .hero-text h1 { margin-bottom: 4px; }
+    .hero-title-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .hero-title-row .live-demo { font-size: 0.9rem; font-weight: 500; }
     .hero-text .subtitle { margin-bottom: 0; }
     .pro-promo {
       background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
@@ -113,7 +115,10 @@
   <div class="hero">
     <img src="images/icon128.png" alt="My Diary" class="hero-icon" width="80" height="80">
     <div class="hero-text">
-      <h1>My Diary</h1>
+      <div class="hero-title-row">
+        <h1>My Diary</h1>
+        <a href="https://app.supademo.com/demo/cmlb4nvin3u99vhwz4ycik7xw?utm_source=link" target="_blank" rel="noopener noreferrer" class="live-demo">Live Demo here</a>
+      </div>
       <p class="subtitle">Save text snippets from any webpage to your personal diary</p>
     </div>
   </div>
