@@ -21,9 +21,18 @@
     li { margin-bottom: 8px; }
     a { color: #4f46e5; }
     .subtitle { color: #666; margin-bottom: 32px; }
-    .nav { margin-bottom: 40px; }
-    .nav a { margin-right: 20px; text-decoration: none; font-weight: 500; }
+    .nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .nav a { text-decoration: none; font-weight: 500; }
     .nav a:hover { text-decoration: underline; }
+    .nav .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav .ph-badge { margin-left: auto; }
+    .nav .ph-badge img { display: block; height: 40px; width: auto; }
     footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #eee; color: #888; font-size: 0.9rem; }
     .hero {
       display: flex;
@@ -92,10 +101,13 @@
 </head>
 <body>
   <div class="nav">
-    <a href="index.html">Home</a>
-    <a href="upgrade.html">Upgrade to Pro</a>
-    <a href="releases.html">Releases</a>
-    <a href="privacy.html">Privacy Policy</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="upgrade.html">Upgrade to Pro</a>
+      <a href="releases.html">Releases</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+    <a class="ph-badge" href="https://www.producthunt.com/products/my-diary?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-my-diary" target="_blank" rel="noopener noreferrer"><img alt="My Diary - Stop losing the best parts of what you read online | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1074203&amp;theme=light&amp;t=1770395639832"></a>
   </div>
 
   <div class="hero">
