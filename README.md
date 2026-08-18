@@ -1,71 +1,85 @@
-# My Diary - Chrome Extension
+# My Diary
 
-A simple Chrome extension to save text snippets from any webpage to your personal diary.
+**Save anything you read, with where it came from.**
 
-[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-blue?logo=googlechrome)](https://chromewebstore.google.com/detail/my-diary/nfdcipolchlmlipikekpbbmpdpienajm)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/my-diary/nfdcipolchlmlipikekpbbmpdpienajm)
+[![Version](https://img.shields.io/badge/version-2.1.2-blue)](https://chromewebstore.google.com/detail/my-diary/nfdcipolchlmlipikekpbbmpdpienajm)
+[![Manifest V3](https://img.shields.io/badge/manifest-v3-green)](manifest.json)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Features
+Select text on any page, right-click, and it's saved — along with the page title, the URL, and the timestamp. Add a note and a tag while it's fresh. Find it again later.
 
-- **Right-click to save**: Select any text on a webpage, right-click, and choose "Add to My Diary"
-- **Automatic metadata**: Each entry saves the selected text, source URL, page title, and timestamp
-- **Add comments**: Add personal notes or thoughts to any saved entry
-- **Search entries**: Quickly find entries by searching text, titles, or comments
-- **Clean UI**: Modern, simple interface for managing your diary entries
+**[Install from the Chrome Web Store →](https://chromewebstore.google.com/detail/my-diary/nfdcipolchlmlipikekpbbmpdpienajm)**
 
-## Installation
+<p align="center">
+  <img src="docs/images/my_diary_pro_capture_feature_1769938460529.png" alt="Capturing a selection with tags and a note" width="49%">
+  <img src="docs/images/my_diary_pro_social_list_1769938700527.png" alt="Browsing saved entries" width="49%">
+</p>
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in the top-right corner)
-3. Click **Load unpacked**
-4. Select the `my-diary-extension` folder
-5. The extension icon will appear in your Chrome toolbar
+---
 
-## Usage
+## What it does
 
-### Saving Content
-1. Select any text on a webpage
-2. Right-click to open the context menu
-3. Click **"Add to My Diary"**
-4. A checkmark badge will briefly appear confirming the save
+**Capture** — Select text, right-click, *Add to My Diary*. A small window appears with your selection, optional tags (Text, Link, Quote…), and a box for your own notes. A badge confirms the save.
 
-### Viewing Entries
-1. Click the My Diary icon in your Chrome toolbar
-2. Browse through your saved entries
-3. Click on source links to revisit the original pages
+**Organise** — Star the entries you care about. Tag them. Filter by tag or favourites.
 
-### Adding Comments
-1. Click **"Add Comment"** on any entry
-2. Type your notes in the text area
-3. Click **"Save Comment"**
+**Find** — Search across the text, page titles, and your own comments.
 
-### Searching
-- Use the search bar at the top to filter entries
-- Searches through text content, page titles, and comments
+**Recover** — Deleted entries go to trash rather than vanishing.
 
-### Deleting Entries
-- Click the **×** button on any entry to delete it
-- Use **"Clear All"** to remove all entries (with confirmation)
+Everything is stored in `chrome.storage.local`, on your device. The extension has no backend and collects nothing.
 
-## Files Structure
+---
+
+## Free and Pro
+
+| | Free | Pro |
+|---|---|---|
+| Entries | 10 | Unlimited |
+| Trash | 2 items | 50 items |
+| Custom tags | 3 | Unlimited |
+| Edit selection and source before saving | — | ✓ |
+| Export to JSON and Markdown | — | ✓ |
+| Dark mode | — | ✓ |
+| Folders and categories | — | ✓ |
+
+[Upgrade to Pro →](https://vamshi466.gumroad.com/l/byirmi) · Licences are issued through Gumroad and verified against their API; the key is stored locally and re-checked on activation.
+
+---
+
+## Privacy
+
+- Diary entries never leave your browser — they live in `chrome.storage.local`.
+- No analytics, no tracking, no account.
+- The only outbound request is licence verification to `api.gumroad.com`, and only when you activate Pro.
+- Permissions are the minimum needed: `contextMenus`, `storage`, `activeTab`, `scripting`, plus host access to `api.gumroad.com` alone.
+
+Full [privacy policy](docs/privacy.html).
+
+---
+
+## Development
+
+```bash
+git clone https://github.com/vamshimorlawar/my-diary-extension
+```
+
+Then in Chrome: `chrome://extensions/` → enable **Developer mode** → **Load unpacked** → select the repo folder.
 
 ```
-my-diary-extension/
-├── manifest.json      # Extension configuration
-├── background.js      # Service worker (context menu handling)
-├── popup.html         # Extension popup UI
-├── popup.css          # Popup styling
-├── popup.js           # Popup logic
-├── icons/
-│   ├── icon16.png     # 16x16 icon
-│   ├── icon48.png     # 48x48 icon
-│   └── icon128.png    # 128x128 icon
-└── README.md          # This file
+manifest.json     Extension config (MV3)
+background.js     Service worker - context menu, capture flow
+content.js/css    In-page capture window
+popup.html/js/css Entry list, search, tags, trash
+config.js         Gumroad product config
+docs/             GitHub Pages site, privacy policy, release notes
 ```
 
-## Data Storage
+## Links
 
-All diary entries are stored locally in Chrome's storage (`chrome.storage.local`). Data persists across browser sessions and is private to your browser.
+[Website](https://vamshimorlawar.github.io/my-diary-extension/) · [Release notes](https://vamshimorlawar.github.io/my-diary-extension/releases.html) · [Chrome Web Store](https://chromewebstore.google.com/detail/my-diary/nfdcipolchlmlipikekpbbmpdpienajm)
 
 ## License
 
-MIT License - Feel free to modify and distribute.
+MIT — see [LICENSE](LICENSE).
